@@ -1,0 +1,1966 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Painel do Administrador - ADD</title>
+
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+
+  <style>
+    :root{
+      --energisa-blue:#0097CE;
+      --energisa-blue-dark:#0079a6;
+      --energisa-orange:#F36F21;
+
+      --bg-page:#f4f6f9;
+      --bg-card:#fff;
+      --text:#1f2937;
+      --text-muted:#6b7280;
+      --border:#dbe5ee;
+      --border-soft:#e9eef3;
+
+      --soft-red:#fff5f5;
+      --soft-red-border:#f3c6c6;
+      --soft-blue:#f3fafe;
+      --soft-blue-border:#cfe8f3;
+      --soft-green:#f3fff5;
+      --soft-green-border:#b7e4c7;
+
+      --cal-normal:#f1f3f5;
+      --cal-add:#d1e7dd;
+      --cal-add-text:#0f5132;
+      --cal-block:#f8d7da;
+      --cal-block-text:#842029;
+      --cal-mixed:#fff3cd;
+      --cal-mixed-text:#7c5c00;
+
+      --radius-sm:8px;
+      --radius-md:12px;
+      --radius-lg:16px;
+
+      --shadow-sm:0 2px 5px rgba(0,0,0,.15);
+      --shadow-md:0 8px 24px rgba(15,23,42,.08);
+    }
+
+    body{
+      background:var(--bg-page);
+      font-family:"Segoe UI",sans-serif;
+      color:var(--text);
+    }
+
+    .container{
+      max-width:97%;
+      margin-top:25px;
+    }
+
+    .topbar{
+      background:var(--energisa-blue);
+      color:#fff;
+      padding:15px;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:10px;
+      flex-wrap:wrap;
+      border-bottom:4px solid var(--energisa-orange);
+    }
+
+    .logout-btn,
+    .btn-toggle-bloqueio{
+      border:none;
+      color:#fff;
+      font-weight:700;
+      transition:.25s;
+    }
+
+    .logout-btn{
+      background:var(--energisa-orange);
+      padding:8px 15px;
+      border-radius:6px;
+    }
+
+    .logout-btn:hover,
+    .btn-toggle-bloqueio:hover{
+      background:#d95f1c;
+    }
+
+    .btn-toggle-bloqueio{
+      background:var(--energisa-orange);
+      padding:10px 16px;
+      border-radius:var(--radius-sm);
+    }
+
+    .btn-toggle-bloqueio.ativo{
+      background:#b84d14;
+    }
+
+    .filter-card,
+    .filters-card{
+      background:var(--bg-card);
+      border-radius:var(--radius-lg);
+      padding:22px;
+      border:1px solid var(--border-soft);
+      box-shadow:var(--shadow-md);
+    }
+
+    .filter-title,
+    .filters-header{
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      gap:12px;
+      flex-wrap:wrap;
+      margin-bottom:18px;
+    }
+
+    .filter-title h6,
+    .filters-title-wrap h6{
+      margin:0;
+      font-size:1.1rem;
+      font-weight:700;
+      color:var(--text);
+    }
+
+    .filter-sub,
+    .filters-title-wrap p,
+    .muted{
+      margin:4px 0 0;
+      font-size:.9rem;
+      color:var(--text-muted);
+    }
+
+    .field-label{
+      font-weight:700;
+      margin-bottom:6px;
+      color:var(--text);
+      font-size:.92rem;
+      min-height:22px;
+    }
+
+    .invisible-label{
+      visibility:hidden;
+    }
+
+    .help{
+      min-height:18px;
+      margin-top:5px;
+      font-size:.78rem;
+      line-height:1.35;
+      color:#7b8794;
+    }
+
+    .divider,
+    .filters-divider{
+      height:1px;
+      background:#edf2f7;
+      border:0;
+      margin:18px 0;
+    }
+
+    .filters-grid{
+      display:grid;
+      grid-template-columns:repeat(12, minmax(0, 1fr));
+      gap:14px;
+      align-items:end;
+    }
+
+    .filter-col-2{ grid-column:span 2; }
+    .filter-col-3{ grid-column:span 3; }
+    .filter-col-4{ grid-column:span 4; }
+    .filter-col-5{ grid-column:span 5; }
+    .filter-col-6{ grid-column:span 6; }
+    .filter-col-12{ grid-column:span 12; }
+
+    .form-control,
+    .form-select{
+      min-height:46px;
+      padding:10px 14px;
+      font-size:.95rem;
+      border-radius:var(--radius-md) !important;
+      border:1px solid #d7dee7 !important;
+      box-shadow:none !important;
+      transition:.2s ease;
+    }
+
+    .form-control:focus,
+    .form-select:focus{
+      border-color:var(--energisa-blue) !important;
+      box-shadow:0 0 0 3px rgba(0,151,206,.12) !important;
+    }
+
+    .actions-wrap,
+    .actions-bar,
+    .actions-left,
+    .actions-right{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+
+    .actions-wrap{
+      justify-content:flex-end;
+    }
+
+    .actions-bar{
+      justify-content:space-between;
+    }
+
+    .toggle,
+    .toggle-modern{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      margin:0;
+      white-space:nowrap;
+    }
+
+    .toggle-modern{
+      padding:9px 12px;
+      border:1px solid var(--border);
+      border-radius:var(--radius-md);
+      background:#fff;
+      font-size:.92rem;
+      color:#334155;
+    }
+
+    .toggle-modern input{
+      margin:0;
+    }
+
+    .btn{
+      min-height:42px;
+      padding:8px 14px;
+      font-weight:600;
+      border-radius:var(--radius-md) !important;
+    }
+
+    .btn-primary{
+      background:var(--energisa-blue) !important;
+      border-color:var(--energisa-blue) !important;
+    }
+
+    .btn-primary:hover{
+      background:var(--energisa-blue-dark) !important;
+      border-color:var(--energisa-blue-dark) !important;
+    }
+
+    .btn-soft{
+      background:#f8fafc;
+      border:1px solid var(--border);
+      color:#334155;
+    }
+
+    .btn-soft:hover{
+      background:#eef4f8;
+    }
+
+    .apply-wrap{
+      display:flex;
+      align-items:end;
+    }
+
+    .apply-wrap > div{
+      width:100%;
+    }
+
+    .apply-wrap .btn{
+      width:100%;
+      min-height:46px;
+    }
+
+    .table-container{
+      max-height:750px;
+      overflow:auto;
+      background:#fff;
+      border:2px solid #ddd;
+      border-radius:6px;
+    }
+
+    table td,
+    table th{
+      padding:10px;
+      font-size:.9rem;
+      white-space:nowrap;
+      vertical-align:middle;
+    }
+
+    .pager{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:10px;
+      padding:10px 0;
+      flex-wrap:wrap;
+    }
+
+    .pager .left,
+    .pager .right{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+
+    .status-msg{
+      min-height:24px;
+    }
+
+    .bloqueio-card{
+      background:var(--soft-red);
+      border:1px solid var(--soft-red-border);
+    }
+
+    .bloqueio-lista-card{
+      background:var(--soft-blue);
+      border:1px solid var(--soft-blue-border);
+    }
+
+    .matricula-link{
+      color:var(--energisa-blue-dark);
+      font-weight:700;
+      cursor:pointer;
+      text-decoration:underline;
+    }
+
+    .mini-table-wrap{
+      max-height:320px;
+      overflow:auto;
+      background:#fff;
+      border:1px solid #dee2e6;
+      border-radius:var(--radius-sm);
+    }
+
+    .just-wrap{
+      max-width:320px;
+      white-space:normal !important;
+    }
+
+    .painel-oculto{
+      display:none;
+    }
+
+    .painel-oculto.show,
+    .acao-dia-box.show{
+      display:block;
+    }
+
+    .calendario-wrap{
+      margin-top:18px;
+      padding:14px;
+      background:#fff;
+      border:1px solid var(--border);
+      border-radius:var(--radius-md);
+    }
+
+    .cal-head{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:10px;
+      margin-bottom:10px;
+    }
+
+    .cal-head strong{
+      font-size:1rem;
+      color:#1f2d3d;
+      text-transform:capitalize;
+    }
+
+    .cal-nav-btn{
+      padding:6px 10px;
+      font-weight:700;
+      cursor:pointer;
+      background:#fff;
+      border:1px solid #ced4da;
+      border-radius:var(--radius-sm);
+    }
+
+    .cal-nav-btn:hover{
+      background:#f1f3f5;
+    }
+
+    .cal-grid{
+      display:grid;
+      grid-template-columns:repeat(7, 1fr);
+      gap:6px;
+    }
+
+    .cal-weekday{
+      padding:4px 0;
+      text-align:center;
+      font-size:.78rem;
+      font-weight:700;
+      color:#6c757d;
+    }
+
+    .cal-dia-vazio{
+      height:38px;
+    }
+
+    .cal-dia{
+      height:38px;
+      border:none;
+      border-radius:10px;
+      font-size:.85rem;
+      font-weight:600;
+      cursor:pointer;
+      transition:.2s;
+      background:var(--cal-normal);
+      color:#343a40;
+    }
+
+    .cal-dia:hover{
+      transform:translateY(-1px);
+      box-shadow:0 2px 6px rgba(0,0,0,.12);
+    }
+
+    .cal-dia.normal{
+      background:var(--cal-normal);
+      color:#343a40;
+    }
+
+    .cal-dia.add{
+      background:var(--cal-add);
+      color:var(--cal-add-text);
+    }
+
+    .cal-dia.bloqueado{
+      background:var(--cal-block);
+      color:var(--cal-block-text);
+    }
+
+    .cal-dia.add-bloqueado{
+      background:var(--cal-mixed);
+      color:var(--cal-mixed-text);
+    }
+
+    .cal-dia.selecionado{
+      outline:3px solid var(--energisa-blue);
+    }
+
+    .legenda-cal{
+      display:flex;
+      gap:12px;
+      flex-wrap:wrap;
+      margin-top:12px;
+      font-size:.82rem;
+      color:#495057;
+    }
+
+    .legenda-item{
+      display:flex;
+      align-items:center;
+      gap:6px;
+    }
+
+    .legenda-cor{
+      width:14px;
+      height:14px;
+      display:inline-block;
+      border-radius:4px;
+      border:1px solid rgba(0,0,0,.08);
+    }
+
+    .acao-dia-box{
+      display:none;
+      margin-top:14px;
+      padding:12px;
+      background:#f8f9fa;
+      border:1px solid #dee2e6;
+      border-radius:10px;
+    }
+
+    .acao-dia-title{
+      margin-bottom:8px;
+      font-weight:700;
+    }
+
+    .resumo-dia{
+      margin-bottom:10px;
+      font-size:.9rem;
+      line-height:1.5;
+      color:#495057;
+    }
+
+    .resumo-dia ul{
+      margin:8px 0 0 18px;
+    }
+
+    @media (max-width: 1200px){
+      .filter-col-2,
+      .filter-col-3,
+      .filter-col-4,
+      .filter-col-5,
+      .filter-col-6{
+        grid-column:span 6;
+      }
+    }
+
+    @media (max-width: 768px){
+      .topbar{
+        align-items:flex-start;
+      }
+
+      .actions-wrap{
+        justify-content:flex-start;
+      }
+
+      .filters-card{
+        padding:16px;
+        border-radius:14px;
+      }
+
+      .filters-grid{
+        grid-template-columns:1fr;
+        gap:12px;
+      }
+
+      .filter-col-2,
+      .filter-col-3,
+      .filter-col-4,
+      .filter-col-5,
+      .filter-col-6,
+      .filter-col-12{
+        grid-column:span 1;
+      }
+
+      .actions-bar{
+        flex-direction:column;
+        align-items:stretch;
+      }
+
+      .actions-left,
+      .actions-right{
+        width:100%;
+      }
+
+      .actions-left .btn,
+      .actions-right .btn,
+      .toggle-modern{
+        width:100%;
+        justify-content:center;
+      }
+
+      .cal-dia{
+        height:34px;
+        font-size:.8rem;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="topbar">
+    <h4 class="m-0">Painel do Administrador - Energisa</h4>
+
+    <div class="d-flex align-items-center gap-2 flex-wrap">
+      <a
+        href="https://coec-epb.github.io/ADD/"
+        class="btn btn-light fw-bold"
+        style="border-radius:6px;"
+      >
+        ⬅️ Voltar
+      </a>
+
+      <span id="userInfo" class="me-3 fw-bold"></span>
+      <button class="logout-btn" onclick="logout()">Sair</button>
+    </div>
+  </div>
+
+  <div class="container">
+    <p id="status" class="status-msg text-danger"></p>
+
+    <div class="filter-card mb-4">
+      <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <div>
+          <h6 class="m-0">⚙️ Ações administrativas</h6>
+          <p class="filter-sub m-0">Abra o painel de bloqueio apenas quando precisar.</p>
+        </div>
+
+        <button id="btnToggleBloqueio" class="btn-toggle-bloqueio" onclick="togglePainelBloqueio()">
+          🔒 Mostrar bloqueio de colaborador
+        </button>
+      </div>
+    </div>
+
+    <div id="painelBloqueio" class="filter-card bloqueio-card mb-4 painel-oculto">
+      <div class="filter-title">
+        <div>
+          <h6>🔒 Bloqueio por período do colaborador</h6>
+          <p class="filter-sub">Selecione a matrícula, informe data início e data fim e bloqueie todo o período.</p>
+        </div>
+        <button class="btn btn-outline-dark btn-sm" onclick="carregarCalendarioColaborador()">Atualizar calendário</button>
+      </div>
+
+      <div class="row g-3">
+        <div class="col-lg-3 col-md-6">
+          <div class="field-label">Matrícula</div>
+          <input type="text" id="bloqMatricula" class="form-control" placeholder="Digite a matrícula">
+          <div class="help">Dica: clique na matrícula na tabela para preencher automaticamente.</div>
+        </div>
+
+        <div class="col-lg-3 col-md-6">
+          <div class="field-label">Data início</div>
+          <input type="date" id="bloqDataInicio" class="form-control">
+        </div>
+
+        <div class="col-lg-3 col-md-6">
+          <div class="field-label">Data fim</div>
+          <input type="date" id="bloqDataFim" class="form-control">
+        </div>
+
+        <div class="col-lg-3 col-md-6">
+          <div class="field-label">Justificativa</div>
+          <select id="bloqJustificativa" class="form-control">
+            <option value="" disabled selected>Selecione a justificativa</option>
+            <option value="atestado_medico">Atestado médico</option>
+            <option value="falta">Falta injustificada</option>
+            <option value="banco_horas">Abono / Banco de Horas</option>
+            <option value="medida_disciplinar">Medida disciplinar</option>
+            <option value="viagem">Viagem</option>
+            <option value="ferias">Férias</option>
+            <option value="treinamento">Treinamento</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="d-flex gap-2 flex-wrap">
+        <button class="btn btn-danger" onclick="bloquearPeriodo()">🔒 Bloquear período</button>
+        <button class="btn btn-outline-danger" onclick="desbloquearPeriodo()">🔓 Desbloquear período</button>
+        <button class="btn btn-outline-secondary" onclick="limparCamposBloqueio()">♻️ Limpar campos</button>
+        <button class="btn btn-outline-primary" onclick="carregarBloqueiosAtivos()">📋 Consultar bloqueios desta matrícula</button>
+      </div>
+
+      <div id="calendarioColaboradorBox" class="calendario-wrap mt-3" style="display:none;">
+        <div class="cal-head">
+          <button class="cal-nav-btn" onclick="mesAnterior()">◀</button>
+          <strong id="calMesAno">Mês</strong>
+          <button class="cal-nav-btn" onclick="proximoMes()">▶</button>
+        </div>
+
+        <div class="cal-grid" id="calWeekdays"></div>
+        <div class="cal-grid" id="calendarioGrid"></div>
+
+        <div class="legenda-cal">
+          <div class="legenda-item"><span class="legenda-cor" style="background:#f1f3f5;"></span> Normal</div>
+          <div class="legenda-item"><span class="legenda-cor" style="background:#d1e7dd;"></span> Lançado</div>
+          <div class="legenda-item"><span class="legenda-cor" style="background:#f8d7da;"></span> Bloqueado</div>
+          <div class="legenda-item"><span class="legenda-cor" style="background:#fff3cd;"></span> Lançado + bloqueado</div>
+        </div>
+
+        <div id="acaoDiaBox" class="acao-dia-box">
+          <div class="acao-dia-title" id="acaoDiaTitulo">Dia selecionado</div>
+          <div class="resumo-dia" id="acaoDiaResumo"></div>
+
+          <div class="d-flex gap-2 flex-wrap">
+            <button class="btn btn-danger btn-sm" onclick="bloquearPeriodo()">🔒 Bloquear período</button>
+            <button class="btn btn-outline-danger btn-sm" onclick="desbloquearPeriodo()">🔓 Desbloquear período</button>
+            <button class="btn btn-outline-dark btn-sm" onclick="excluirLancamentosDoDia()">🗑️ Excluir lançamento(s)</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="painelListaBloqueios" class="filter-card bloqueio-lista-card mb-4 painel-oculto" style="display:none;">
+      <div class="filter-title">
+        <div>
+          <h6>📋 Bloqueios ativos</h6>
+          <p class="filter-sub">A lista só aparece quando uma matrícula for consultada.</p>
+        </div>
+      </div>
+
+      <div class="mini-table-wrap">
+        <table class="table table-sm table-bordered table-hover mb-0">
+          <thead class="table-light">
+            <tr>
+              <th>Matrícula</th>
+              <th>Data</th>
+              <th>Justificativa</th>
+              <th>Criado por</th>
+              <th>Criado em</th>
+              <th>Ação</th>
+            </tr>
+          </thead>
+          <tbody id="tabelaBloqueios">
+            <tr>
+              <td colspan="6" class="text-center text-muted py-3">
+                Informe uma matrícula para consultar os bloqueios.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="filters-card mb-4">
+      <div class="filters-header">
+        <div class="filters-title-wrap">
+          <h6>🔎 Filtros</h6>
+          <p>Refine a busca por regional, polo, período, matrícula ou nome.</p>
+        </div>
+      </div>
+
+      <div class="filters-grid">
+        <div class="filter-col-3">
+          <div class="field-label">Regional</div>
+          <select id="filtroRegional" class="form-select">
+            <option value="">Todas</option>
+            <option>LESTE</option>
+            <option>CENTRO</option>
+            <option>OESTE</option>
+          </select>
+        </div>
+
+        <div class="filter-col-3">
+          <div class="field-label">Polo</div>
+          <select id="filtroPolo" class="form-select">
+            <option value="">Todos</option>
+            <option>João Pessoa</option>
+            <option>Itabaiana</option>
+            <option>Mamanguape</option>
+            <option>Borborema</option>
+            <option>Campina Grande</option>
+            <option>Monteiro</option>
+            <option>Guarabira</option>
+            <option>Esperança</option>
+            <option>Itaporanga</option>
+            <option>Sousa</option>
+            <option>Patos</option>
+            <option>Catolé do Rocha</option>
+          </select>
+        </div>
+
+        <div class="filter-col-3">
+          <div class="field-label">Data inicial</div>
+          <input id="dataInicio" type="date" class="form-control">
+        </div>
+
+        <div class="filter-col-3">
+          <div class="field-label">Data final</div>
+          <input id="dataFim" type="date" class="form-control">
+        </div>
+
+        <div class="filter-col-3">
+          <div class="field-label">Matrícula</div>
+          <input type="text" id="filtroMatricula" class="form-control" placeholder="Digite a matrícula">
+          <div class="help">Se vazio, esse filtro será ignorado.</div>
+        </div>
+
+        <div class="filter-col-5">
+          <div class="field-label">Nome</div>
+          <input type="text" id="filtroNome" class="form-control" placeholder="Digite o nome...">
+          <div class="help">Busca inteligente: ignora acentos e procura por partes do nome.</div>
+        </div>
+
+        <div class="filter-col-2">
+          <div class="field-label">Itens por página</div>
+          <select id="selectPorPagina" class="form-select">
+            <option value="50" selected>50</option>
+            <option value="100">100</option>
+            <option value="200">200</option>
+          </select>
+          <div class="help">Afeta paginação e exportação.</div>
+        </div>
+
+        <div class="filter-col-2 apply-wrap">
+          <div>
+            <div class="field-label invisible-label">Aplicar</div>
+            <button id="btnFiltrar" class="btn btn-primary w-100" onclick="aplicarFiltros()">
+              🔎 Aplicar
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="filters-divider"></div>
+
+      <div class="actions-bar">
+        <div class="actions-left">
+          <button class="btn btn-soft" onclick="limparFiltros()">♻️ Limpar</button>
+          <button class="btn btn-success" onclick="baixarXLSXPaginaAtual()">⬇️ Página</button>
+          <button class="btn btn-outline-success" onclick="baixarXLSXTudoFiltrado()">⬇️ Baixar tudo</button>
+        </div>
+
+        <div class="actions-right">
+          <label class="toggle-modern">
+            <input type="checkbox" id="checkTodosFiltrados">
+            <span>Selecionar filtrados</span>
+          </label>
+
+          <label class="toggle-modern">
+            <input type="checkbox" id="mostrarSolicitados">
+            <span>Mostrar solicitados</span>
+          </label>
+
+          <button class="btn btn-warning" onclick="marcarFiltradosComoSolicitado()">✅ Marcar como solicitado</button>
+          <button class="btn btn-danger" onclick="excluirSelecionados()">🗑️ Excluir</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="pager">
+      <div class="left">
+        <button id="btnAnterior" class="btn btn-outline-primary" onclick="paginaAnterior()">⬅️ Anterior</button>
+        <button id="btnProximo" class="btn btn-outline-primary" onclick="proximaPagina()">Próximo ➡️</button>
+        <span class="muted" id="infoPaginacao">Página 1</span>
+      </div>
+
+      <div class="right">
+        <label class="muted m-0">Ir para página:</label>
+        <input id="inputIrPagina" type="number" min="1" class="form-control" style="width:110px" />
+        <button class="btn btn-outline-secondary" onclick="irParaPagina()">Ir</button>
+      </div>
+    </div>
+
+    <div class="table-container">
+      <table class="table table-bordered table-striped table-hover mb-0">
+        <thead class="table-dark">
+          <tr>
+            <th class="text-center">
+              <input type="checkbox" id="checkTodos" onclick="marcarTodos(this)" />
+            </th>
+            <th>ID</th>
+            <th>Nome</th>
+            <th>Email</th>
+            <th>Regional</th>
+            <th>Polo</th>
+            <th>Matrícula</th>
+            <th>Data Uso</th>
+            <th>Tipo Refeição</th>
+            <th>Horário</th>
+            <th>Localidade</th>
+            <th>GPS</th>
+            <th>Sequência</th>
+            <th>OS/RRSS</th>
+            <th>Nº ADD</th>
+            <th>Solicitado</th>
+          </tr>
+        </thead>
+        <tbody id="tabela"></tbody>
+      </table>
+    </div>
+  </div>
+  <script src="https://coec-epb.github.io/login/auth.js"></script>
+  <script>
+    if (!isLogged()) {
+  logout();
+}
+
+const user = getUser();
+
+if (!user || !user.matricula) {
+  logout();
+}
+
+    if (!user || user.role !== "admin") {
+  alert("🚫 USUÁRIO NÃO AUTORIZADO");
+  window.location.href = "https://coec-epb.github.io/ADD/";
+}
+
+    let paginaAtual = 1;
+    let totalPages = 1;
+    let totalItems = 0;
+    let dadosFiltrados = [];
+
+    let calendarioDataAtual = new Date();
+    let calendarioLancamentos = [];
+    let calendarioBloqueios = [];
+    let calendarioMatriculaAtual = "";
+    let diaSelecionado = "";
+
+    const filtros = {
+      regional: "",
+      polo: "",
+      matricula: "",
+      nome: "",
+      dataInicio: "",
+      dataFim: "",
+      limit: 50,
+      mostrarSolicitados: false
+    };
+
+    document.getElementById("userInfo").innerText = "Logado como: " + user.matricula;
+    window.logout = function () {
+      localStorage.removeItem("matricula");
+      window.location.href = "https://coec-epb.github.io/login/";
+    };
+
+    function normalizarTextoBusca(texto) {
+      return String(texto || "")
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toLowerCase()
+        .trim()
+        .replace(/\s+/g, " ");
+    }
+
+    function nomePassaFiltroInteligente(nomeRegistro, termoBusca) {
+      const nome = normalizarTextoBusca(nomeRegistro);
+      const busca = normalizarTextoBusca(termoBusca);
+
+      if (!busca) return true;
+      if (!nome) return false;
+
+      const partesBusca = busca.split(" ").filter(Boolean);
+      return partesBusca.every(parte => nome.includes(parte));
+    }
+
+    function pontuarNome(nomeRegistro, termoBusca) {
+      const nome = normalizarTextoBusca(nomeRegistro);
+      const busca = normalizarTextoBusca(termoBusca);
+
+      if (!busca) return 0;
+      if (!nome) return -1;
+
+      let score = 0;
+
+      if (nome === busca) score += 100;
+      if (nome.startsWith(busca)) score += 50;
+      if (nome.includes(busca)) score += 30;
+
+      const partesBusca = busca.split(" ").filter(Boolean);
+      for (const parte of partesBusca) {
+        if (nome.startsWith(parte)) score += 10;
+        else if (nome.includes(parte)) score += 5;
+      }
+
+      return score;
+    }
+
+    function setStatus(text, type = "primary") {
+      const status = document.getElementById("status");
+      status.className = "status-msg fw-bold text-" + type;
+      status.innerText = text;
+    }
+
+    function getLimit() {
+      const v = Number(document.getElementById("selectPorPagina").value || 50);
+      return Number.isFinite(v) ? v : 50;
+    }
+
+    function lerFiltrosDaTela() {
+      filtros.regional = document.getElementById("filtroRegional").value.trim();
+      filtros.polo = document.getElementById("filtroPolo").value.trim();
+      filtros.dataInicio = document.getElementById("dataInicio").value;
+      filtros.dataFim = document.getElementById("dataFim").value;
+      filtros.matricula = document.getElementById("filtroMatricula").value.trim();
+      filtros.nome = document.getElementById("filtroNome").value.trim();
+      filtros.limit = getLimit();
+      filtros.mostrarSolicitados = document.getElementById("mostrarSolicitados").checked;
+    }
+
+    function montarQS(page, semPaginacao = false) {
+      const p = new URLSearchParams();
+
+      if (filtros.regional) p.set("regional", filtros.regional);
+      if (filtros.polo) p.set("polo", filtros.polo);
+      if (filtros.matricula) p.set("matricula", filtros.matricula);
+      if (filtros.nome) p.set("nome", filtros.nome);
+      if (filtros.dataInicio) p.set("dataInicio", filtros.dataInicio);
+      if (filtros.dataFim) p.set("dataFim", filtros.dataFim);
+
+      if (filtros.mostrarSolicitados) {
+        p.set("mostrarSolicitados", "1");
+      }
+
+      if (!semPaginacao) {
+        p.set("page", String(page));
+        p.set("limit", String(filtros.limit));
+      }
+
+      return p.toString();
+    }
+
+    function atualizarUIpaginacao() {
+      document.getElementById("infoPaginacao").innerText =
+        `Página ${paginaAtual} de ${totalPages} • ${totalItems} registro(s)`;
+
+      document.getElementById("btnAnterior").disabled = paginaAtual <= 1;
+      document.getElementById("btnProximo").disabled = paginaAtual >= totalPages;
+      document.getElementById("checkTodos").checked = false;
+    }
+
+    function escaparHTML(valor) {
+      return String(valor ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    function formatarDataBR(dataISO) {
+      if (!dataISO) return "";
+
+      const valor = String(dataISO).trim();
+
+      if (/^\d{4}-\d{2}-\d{2}$/.test(valor)) {
+        const [ano, mes, dia] = valor.split("-");
+        return `${dia}/${mes}/${ano}`;
+      }
+
+      if (/^\d{4}-\d{2}-\d{2}T/.test(valor)) {
+        const parteData = valor.slice(0, 10);
+        const [ano, mes, dia] = parteData.split("-");
+        return `${dia}/${mes}/${ano}`;
+      }
+
+      if (/^\d{2}\/\d{2}\/\d{4}$/.test(valor)) {
+        return valor;
+      }
+
+      return valor;
+    }
+
+    function formatarMesAno(data) {
+      return data.toLocaleDateString("pt-BR", {
+        month: "long",
+        year: "numeric"
+      });
+    }
+
+    function setWeekdays() {
+      const el = document.getElementById("calWeekdays");
+      el.innerHTML = ["D","S","T","Q","Q","S","S"]
+        .map(d => `<div class="cal-weekday">${d}</div>`)
+        .join("");
+    }
+
+    function getLancamentosDoDia(dataISO) {
+      return calendarioLancamentos.filter(item => String(item.datauso || "") === dataISO);
+    }
+
+    function getBloqueioDoDia(dataISO) {
+      return calendarioBloqueios.find(item => String(item.datauso || "") === dataISO) || null;
+    }
+
+    function atualizarResumoDiaSelecionado() {
+      const box = document.getElementById("acaoDiaBox");
+      const titulo = document.getElementById("acaoDiaTitulo");
+      const resumo = document.getElementById("acaoDiaResumo");
+
+      if (!diaSelecionado) {
+        box.classList.remove("show");
+        titulo.innerText = "";
+        resumo.innerHTML = "";
+        return;
+      }
+
+      const lancamentos = getLancamentosDoDia(diaSelecionado);
+      const bloqueio = getBloqueioDoDia(diaSelecionado);
+
+      titulo.innerText = `Dia selecionado: ${formatarDataBR(diaSelecionado)}`;
+
+      let html = "";
+      html += `<div><strong>Matrícula:</strong> ${escaparHTML(calendarioMatriculaAtual || "-")}</div>`;
+
+      if (lancamentos.length > 0) {
+        html += `<div class="mt-2"><strong>Lançamentos do dia:</strong></div><ul>`;
+        html += lancamentos.map(item => `
+          <li>
+            ${escaparHTML(item.tiporefeicao || "—")}
+            ${item.horario ? ` • ${escaparHTML(item.horario)}` : ""}
+            ${item.localidade ? ` • ${escaparHTML(item.localidade)}` : ""}
+          </li>
+        `).join("");
+        html += `</ul>`;
+      } else {
+        html += `<div class="mt-2"><strong>Lançamentos do dia:</strong> nenhum</div>`;
+      }
+
+      if (bloqueio) {
+        html += `
+          <div class="mt-2">
+            <strong>Bloqueio ativo:</strong> sim<br>
+            <strong>Justificativa:</strong> ${escaparHTML(bloqueio.justificativa || "")}
+          </div>
+        `;
+      } else {
+        html += `<div class="mt-2"><strong>Bloqueio ativo:</strong> não</div>`;
+      }
+
+      resumo.innerHTML = html;
+      box.classList.add("show");
+    }
+
+    function renderCalendarioColaborador() {
+      const box = document.getElementById("calendarioColaboradorBox");
+      const grid = document.getElementById("calendarioGrid");
+      const mesAno = document.getElementById("calMesAno");
+
+      if (!calendarioMatriculaAtual) {
+        box.style.display = "none";
+        return;
+      }
+
+      box.style.display = "block";
+      setWeekdays();
+
+      const ano = calendarioDataAtual.getFullYear();
+      const mes = calendarioDataAtual.getMonth();
+
+      mesAno.innerText = formatarMesAno(calendarioDataAtual);
+      grid.innerHTML = "";
+
+      const primeiroDia = new Date(ano, mes, 1).getDay();
+      const totalDias = new Date(ano, mes + 1, 0).getDate();
+
+      for (let i = 0; i < primeiroDia; i++) {
+        const vazio = document.createElement("div");
+        vazio.className = "cal-dia-vazio";
+        grid.appendChild(vazio);
+      }
+
+      for (let dia = 1; dia <= totalDias; dia++) {
+        const dataISO = `${ano}-${String(mes + 1).padStart(2, "0")}-${String(dia).padStart(2, "0")}`;
+        const lancamentos = getLancamentosDoDia(dataISO);
+        const bloqueio = getBloqueioDoDia(dataISO);
+
+        let classe = "cal-dia normal";
+        if (lancamentos.length > 0 && bloqueio) {
+          classe = "cal-dia add-bloqueado";
+        } else if (bloqueio) {
+          classe = "cal-dia bloqueado";
+        } else if (lancamentos.length > 0) {
+          classe = "cal-dia add";
+        }
+
+        if (diaSelecionado === dataISO) {
+          classe += " selecionado";
+        }
+
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = classe;
+        btn.textContent = dia;
+        btn.onclick = () => selecionarDiaCalendario(dataISO);
+
+        grid.appendChild(btn);
+      }
+
+      atualizarResumoDiaSelecionado();
+    }
+
+    window.selecionarDiaCalendario = function (dataISO) {
+      diaSelecionado = dataISO;
+      document.getElementById("bloqDataInicio").value = dataISO;
+      document.getElementById("bloqDataFim").value = dataISO;
+      renderCalendarioColaborador();
+    };
+
+    window.mesAnterior = async function () {
+  calendarioDataAtual = new Date(
+    calendarioDataAtual.getFullYear(),
+    calendarioDataAtual.getMonth() - 1,
+    1
+  );
+
+  if (calendarioMatriculaAtual) {
+    await carregarCalendarioColaborador(); // 🔥 busca novos dados
+  } else {
+    renderCalendarioColaborador();
+  }
+};
+
+    window.proximoMes = async function () {
+  calendarioDataAtual = new Date(
+    calendarioDataAtual.getFullYear(),
+    calendarioDataAtual.getMonth() + 1,
+    1
+  );
+
+  if (calendarioMatriculaAtual) {
+    await carregarCalendarioColaborador(); // 🔥 busca novos dados
+  } else {
+    renderCalendarioColaborador();
+  }
+};
+
+    window.limparCamposBloqueio = function () {
+      document.getElementById("bloqMatricula").value = "";
+      document.getElementById("bloqDataInicio").value = "";
+      document.getElementById("bloqDataFim").value = "";
+      document.getElementById("bloqJustificativa").value = "";
+
+      calendarioMatriculaAtual = "";
+      calendarioLancamentos = [];
+      calendarioBloqueios = [];
+      diaSelecionado = "";
+      document.getElementById("calendarioColaboradorBox").style.display = "none";
+      document.getElementById("acaoDiaBox").classList.remove("show");
+
+      document.getElementById("painelListaBloqueios").style.display = "none";
+      document.getElementById("painelListaBloqueios").classList.remove("show");
+      document.getElementById("tabelaBloqueios").innerHTML = `
+        <tr>
+          <td colspan="6" class="text-center text-muted py-3">
+            Informe uma matrícula para consultar os bloqueios.
+          </td>
+        </tr>
+      `;
+    };
+
+    window.preencherCamposBloqueio = async function (matricula, datauso = "") {
+      document.getElementById("bloqMatricula").value = matricula || "";
+      document.getElementById("bloqDataInicio").value = datauso || "";
+      document.getElementById("bloqDataFim").value = datauso || "";
+
+      const painel = document.getElementById("painelBloqueio");
+      const botao = document.getElementById("btnToggleBloqueio");
+
+      painel.classList.add("show");
+      botao.classList.add("ativo");
+      botao.innerText = "🔓 Ocultar bloqueio de colaborador";
+
+      document.getElementById("bloqMatricula").focus();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+
+      await carregarCalendarioColaborador();
+      await carregarBloqueiosAtivos();
+
+      if (datauso) {
+        diaSelecionado = datauso;
+        const partes = datauso.split("-");
+        calendarioDataAtual = new Date(Number(partes[0]), Number(partes[1]) - 1, 1);
+        renderCalendarioColaborador();
+      }
+    };
+
+    window.togglePainelBloqueio = function () {
+      const painel = document.getElementById("painelBloqueio");
+      const painelLista = document.getElementById("painelListaBloqueios");
+      const botao = document.getElementById("btnToggleBloqueio");
+
+      const aberto = painel.classList.contains("show");
+
+      if (aberto) {
+        painel.classList.remove("show");
+        painelLista.classList.remove("show");
+        painelLista.style.display = "none";
+        botao.classList.remove("ativo");
+        botao.innerText = "🔒 Mostrar bloqueio de colaborador";
+      } else {
+        painel.classList.add("show");
+        botao.classList.add("ativo");
+        botao.innerText = "🔓 Ocultar bloqueio de colaborador";
+      }
+    };
+
+    window.carregarCalendarioColaborador = async function () {
+  const matricula = document.getElementById("bloqMatricula").value.trim();
+
+  if (!matricula) {
+    alert("Informe a matrícula do colaborador.");
+    return;
+  }
+
+  try {
+    setStatus("🔄 Carregando calendário do colaborador...", "primary");
+
+    calendarioMatriculaAtual = matricula;
+
+    const hoje = calendarioDataAtual;
+    const mes = String(hoje.getMonth() + 1).padStart(2, "0");
+    const ano = hoje.getFullYear();
+    
+    const [respLanc, respBloq] = await Promise.all([
+      authFetch(`${API}/buscar?matricula=${encodeURIComponent(matricula)}&mes=${mes}&ano=${ano}`),
+      authFetch(`${API}/listar-bloqueios?matricula=${encodeURIComponent(matricula)}`)
+    ]);
+
+    const lancJson = await respLanc.json().catch(() => []);
+    const bloqJson = await respBloq.json().catch(() => ({}));
+
+    calendarioLancamentos = Array.isArray(lancJson) ? lancJson : [];
+    calendarioBloqueios = bloqJson.items || [];
+
+    renderCalendarioColaborador();
+    setStatus("✅ Calendário carregado.", "success");
+
+  } catch (err) {
+    console.error(err);
+    setStatus("❌ Erro ao carregar calendário: " + err.message, "danger");
+  }
+};
+
+    window.bloquearPeriodo = async function () {
+      const matricula = document.getElementById("bloqMatricula").value.trim();
+      const dataInicio = document.getElementById("bloqDataInicio").value.trim();
+      const dataFim = document.getElementById("bloqDataFim").value.trim();
+      const justificativa = document.getElementById("bloqJustificativa").value.trim();
+
+      if (!matricula || !dataInicio || !dataFim || !justificativa) {
+        alert("Preencha matrícula, data início, data fim e justificativa.");
+        return;
+      }
+
+      if (dataFim < dataInicio) {
+        alert("A data fim não pode ser menor que a data início.");
+        return;
+      }
+
+      try {
+        setStatus("🔄 Bloqueando período...", "primary");
+
+        const resp = await authFetch(`${API}/bloquear-periodo`, {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json"
+  },
+  body: JSON.stringify({
+    matricula,
+    dataInicio,
+    dataFim,
+    justificativa
+  })
+});
+
+        const json = await resp.json().catch(() => ({}));
+
+        if (!resp.ok || json.ok === false) {
+          throw new Error(json.error || "Erro ao bloquear período.");
+        }
+
+        alert(`✅ Período bloqueado com sucesso. ${json.totalBloqueados ?? 0} dia(s) afetado(s).`);
+        setStatus("✅ Bloqueio realizado com sucesso.", "success");
+        await carregarCalendarioColaborador();
+        await carregarBloqueiosAtivos();
+      } catch (err) {
+        console.error(err);
+        alert("❌ " + err.message);
+        setStatus("❌ Erro ao bloquear período: " + err.message, "danger");
+      }
+    };
+  
+    window.desbloquearPeriodo = async function () {
+      const matricula = document.getElementById("bloqMatricula").value.trim();
+      const dataInicio = document.getElementById("bloqDataInicio").value.trim();
+      const dataFim = document.getElementById("bloqDataFim").value.trim();
+
+      if (!matricula || !dataInicio || !dataFim) {
+        alert("Preencha matrícula, data início e data fim para desbloquear.");
+        return;
+      }
+
+      if (dataFim < dataInicio) {
+        alert("A data fim não pode ser menor que a data início.");
+        return;
+      }
+
+      const confirmar = confirm(
+        `Desbloquear o período de ${formatarDataBR(dataInicio)} até ${formatarDataBR(dataFim)} da matrícula ${matricula}?`
+      );
+      if (!confirmar) return;
+
+      try {
+        setStatus("🔄 Desbloqueando período...", "primary");
+
+        const resp = await authFetch(`${API}/desbloquear-periodo`, {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json"
+  },
+  body: JSON.stringify({
+    matricula,
+    dataInicio,
+    dataFim
+  })
+});
+
+        const json = await resp.json().catch(() => ({}));
+
+        if (!resp.ok || json.ok === false) {
+          throw new Error(json.error || "Erro ao desbloquear período.");
+        }
+
+        alert(`✅ Período desbloqueado com sucesso. ${json.totalDesbloqueados ?? 0} dia(s) afetado(s).`);
+        setStatus("✅ Desbloqueio realizado com sucesso.", "success");
+        await carregarCalendarioColaborador();
+        await carregarBloqueiosAtivos();
+      } catch (err) {
+        console.error(err);
+        alert("❌ " + err.message);
+        setStatus("❌ Erro ao desbloquear período: " + err.message, "danger");
+      }
+    };
+
+    window.excluirLancamentosDoDia = async function () {
+      const matricula = document.getElementById("bloqMatricula").value.trim();
+      const datauso = document.getElementById("bloqDataInicio").value.trim();
+
+      if (!matricula || !datauso) {
+        alert("Selecione uma matrícula e um dia no calendário.");
+        return;
+      }
+
+      const lancamentos = getLancamentosDoDia(datauso);
+      if (!lancamentos.length) {
+        alert("Não há lançamentos nesse dia para excluir.");
+        return;
+      }
+
+      const tipos = lancamentos.map(x => x.tiporefeicao || "—").join(", ");
+      const confirmar = confirm(
+        `Excluir ${lancamentos.length} lançamento(s) do dia ${formatarDataBR(datauso)}?\n\nTipos: ${tipos}`
+      );
+      if (!confirmar) return;
+
+      try {
+        setStatus("🔄 Excluindo lançamento(s) do dia...", "primary");
+
+        const ids = lancamentos.map(x => x.id).filter(Boolean);
+
+        const resp = await authFetch(`${API}/excluir`, {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json"
+  },
+  body: JSON.stringify({ ids })
+});
+
+        const json = await resp.json().catch(() => ({}));
+
+        if (!resp.ok || json.ok === false) {
+          throw new Error(json.error || "Erro ao excluir lançamento(s).");
+        }
+
+        alert("✅ Lançamento(s) excluído(s) com sucesso.");
+        setStatus("✅ Lançamento(s) excluído(s) com sucesso.", "success");
+        await carregarPagina(paginaAtual);
+        await carregarCalendarioColaborador();
+      } catch (err) {
+        console.error(err);
+        alert("❌ " + err.message);
+        setStatus("❌ Erro ao excluir lançamento(s): " + err.message, "danger");
+      }
+    };
+
+    window.carregarBloqueiosAtivos = async function () {
+      const tbody = document.getElementById("tabelaBloqueios");
+      const painelLista = document.getElementById("painelListaBloqueios");
+      const matricula = document.getElementById("bloqMatricula").value.trim();
+
+      if (!matricula) {
+        painelLista.style.display = "none";
+        painelLista.classList.remove("show");
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="6" class="text-center text-muted py-3">
+              Informe uma matrícula para consultar os bloqueios.
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      painelLista.style.display = "block";
+      painelLista.classList.add("show");
+
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="6" class="text-center text-muted py-3">Carregando bloqueios...</td>
+        </tr>
+      `;
+
+      try {
+        const resp = await authFetch(
+  `${API}/listar-bloqueios?matricula=${encodeURIComponent(matricula)}`
+);
+
+        const json = await resp.json().catch(() => ({}));
+
+        if (!resp.ok || json.ok === false) {
+          throw new Error(json.error || "Erro ao listar bloqueios.");
+        }
+
+        const lista = json.items || [];
+
+        if (!lista.length) {
+          tbody.innerHTML = `
+            <tr>
+              <td colspan="6" class="text-center text-muted py-3">
+                Nenhum bloqueio ativo para esta matrícula.
+              </td>
+            </tr>
+          `;
+          return;
+        }
+
+        tbody.innerHTML = lista.map(item => `
+          <tr>
+            <td>
+              <span class="matricula-link" onclick="preencherCamposBloqueio('${escaparHTML(item.matricula)}','${escaparHTML(item.datauso)}')">
+                ${escaparHTML(item.matricula)}
+              </span>
+            </td>
+            <td>${escaparHTML(formatarDataBR(item.datauso))}</td>
+            <td class="just-wrap">${escaparHTML(item.justificativa)}</td>
+            <td>${escaparHTML(item.criado_por ?? "")}</td>
+            <td>${escaparHTML(item.criado_em ?? "")}</td>
+            <td>
+              <button class="btn btn-sm btn-outline-danger" onclick="preencherCamposBloqueio('${escaparHTML(item.matricula)}','${escaparHTML(item.datauso)}')">
+                Selecionar
+              </button>
+            </td>
+          </tr>
+        `).join("");
+      } catch (err) {
+        console.error(err);
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="6" class="text-center text-danger py-3">Erro ao carregar bloqueios.</td>
+          </tr>
+        `;
+      }
+    };
+
+    function preencherTabela(lista) {
+      const tabela = document.getElementById("tabela");
+      tabela.innerHTML = "";
+
+      if (!lista || lista.length === 0) {
+        tabela.innerHTML = `
+          <tr>
+            <td colspan="16" class="text-center text-muted py-4">
+              Nenhum registro encontrado.
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      const linhas = lista.map(item => `
+        <tr>
+          <td class="text-center">
+            <input type="checkbox" class="check-item" value="${escaparHTML(item.id)}">
+          </td>
+          <td>${escaparHTML(item.id)}</td>
+          <td>${escaparHTML(item.nome)}</td>
+          <td>${escaparHTML(item.email)}</td>
+          <td>${escaparHTML(item.regional)}</td>
+          <td>${escaparHTML(item.polo)}</td>
+          <td>
+            <span class="matricula-link" onclick="preencherCamposBloqueio('${escaparHTML(item.matricula)}')">
+              ${escaparHTML(item.matricula)}
+            </span>
+          </td>
+          <td>${escaparHTML(formatarDataBR(item.datauso))}</td>
+          <td>${escaparHTML(item.tiporefeicao)}</td>
+          <td>${escaparHTML(item.horario)}</td>
+          <td>${escaparHTML(item.localidade)}</td>
+          <td>${escaparHTML(item.gps)}</td>
+          <td>${escaparHTML(item.sequencia)}</td>
+          <td>${escaparHTML(item.osrrss)}</td>
+          <td>${escaparHTML(item.numeroadd)}</td>
+          <td>${escaparHTML(item.solicitado)}</td>
+        </tr>
+      `).join("");
+
+      tabela.innerHTML = linhas;
+    }
+
+    window.marcarTodos = function (checkbox) {
+      document.querySelectorAll(".check-item").forEach(cb => {
+        cb.checked = checkbox.checked;
+      });
+    };
+
+    document.getElementById("checkTodosFiltrados").addEventListener("change", (e) => {
+      const checked = e.target.checked;
+
+      document.querySelectorAll(".check-item").forEach(cb => {
+        cb.checked = checked;
+      });
+
+      const checkTodos = document.getElementById("checkTodos");
+      if (checkTodos) checkTodos.checked = checked;
+    });
+
+    async function carregarPagina(page) {
+      const btnFiltrar = document.getElementById("btnFiltrar");
+      btnFiltrar.disabled = true;
+
+      try {
+        setStatus("🔄 Carregando dados...", "primary");
+
+        const resp = await authFetch(`${API}/buscar-todos?${montarQS(paginaAtual)}`);
+
+        if (!resp.ok) {
+          const t = await resp.text();
+          throw new Error(`HTTP ${resp.status}: ${t}`);
+        }
+
+        const payload = await resp.json();
+
+        let itens = payload.items || [];
+
+        dadosFiltrados = itens;
+        paginaAtual = Number(payload.page || page);
+        totalPages = Number(payload.totalPages || 1);
+        totalItems = Number(payload.totalItems || itens.length);
+
+        preencherTabela(dadosFiltrados);
+        atualizarUIpaginacao();
+
+        setStatus(`✅ ${dadosFiltrados.length} registro(s) carregados na página`, "success");
+      } catch (err) {
+        console.error(err);
+        setStatus("❌ Erro ao carregar dados: " + err.message, "danger");
+      } finally {
+        btnFiltrar.disabled = false;
+      }
+    }
+
+    window.aplicarFiltros = async function () {
+      const btn = document.getElementById("btnFiltrar");
+      btn.disabled = true;
+      btn.innerHTML = "⏳ Aguarde...";
+
+      try {
+        lerFiltrosDaTela();
+        paginaAtual = 1;
+        await carregarPagina(paginaAtual);
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = "🔍 Aplicar";
+      }
+    };
+
+    window.limparFiltros = async function () {
+      document.getElementById("filtroRegional").value = "";
+      document.getElementById("filtroPolo").value = "";
+      document.getElementById("dataInicio").value = "";
+      document.getElementById("dataFim").value = "";
+      document.getElementById("filtroMatricula").value = "";
+      document.getElementById("filtroNome").value = "";
+      document.getElementById("selectPorPagina").value = "50";
+      document.getElementById("mostrarSolicitados").checked = false;
+      document.getElementById("checkTodosFiltrados").checked = false;
+      document.getElementById("checkTodos").checked = false;
+      document.getElementById("inputIrPagina").value = "";
+
+      lerFiltrosDaTela();
+      paginaAtual = 1;
+      await carregarPagina(paginaAtual);
+    };
+
+    window.proximaPagina = async function () {
+      if (paginaAtual < totalPages) {
+        await carregarPagina(paginaAtual + 1);
+      }
+    };
+
+    window.paginaAnterior = async function () {
+      if (paginaAtual > 1) {
+        await carregarPagina(paginaAtual - 1);
+      }
+    };
+
+    window.irParaPagina = async function () {
+      const v = Number(document.getElementById("inputIrPagina").value);
+
+      if (!Number.isFinite(v) || v < 1) return;
+
+      const destino = Math.max(1, Math.min(totalPages, v));
+      await carregarPagina(destino);
+    };
+
+    function prepararDadosParaExportacao(lista) {
+      return (lista || []).map(item => ({
+        ID: item.id ?? "",
+        Nome: item.nome ?? "",
+        Email: item.email ?? "",
+        Regional: item.regional ?? "",
+        Polo: item.polo ?? "",
+        Matrícula: item.matricula ?? "",
+        "Data Uso": formatarDataBR(item.datauso),
+        "Tipo Refeição": item.tiporefeicao ?? "",
+        Horário: item.horario ?? "",
+        Localidade: item.localidade ?? "",
+        GPS: item.gps ?? "",
+        Sequência: item.sequencia ?? "",
+        "OS/RRSS": item.osrrss ?? "",
+        "Nº ADD": item.numeroadd ?? "",
+        Solicitado: item.solicitado ?? ""
+      }));
+    }
+
+    window.baixarXLSXPaginaAtual = function () {
+      if (!dadosFiltrados || dadosFiltrados.length === 0) {
+        alert("Nenhum dado na página para exportar.");
+        return;
+      }
+
+      const dadosExport = prepararDadosParaExportacao(dadosFiltrados);
+      const ws = XLSX.utils.json_to_sheet(dadosExport);
+      const wb = XLSX.utils.book_new();
+
+      XLSX.utils.book_append_sheet(wb, ws, "Pagina");
+      XLSX.writeFile(wb, "registros_ADD_pagina_atual.xlsx");
+    };
+
+    window.baixarXLSXTudoFiltrado = async function () {
+  lerFiltrosDaTela();
+
+  try {
+    setStatus("🔄 Preparando exportação (tudo filtrado)...", "primary");
+
+    // PRIMEIRA PÁGINA
+    const resp1 = await authFetch(
+      `${API}/buscar-todos?${montarQS(1)}`
+    );
+
+    if (!resp1.ok) {
+      throw new Error("Falha ao iniciar exportação");
+    }
+
+    const payload1 = await resp1.json();
+
+    const tp = Number(payload1.totalPages || 1);
+
+    const tudo = [...(payload1.items || [])];
+
+    setStatus(
+      `🔄 Exportando... página 1 de ${tp} (itens: ${tudo.length})`,
+      "primary"
+    );
+
+    // DEMAIS PÁGINAS
+    for (let page = 2; page <= tp; page++) {
+
+      const resp = await authFetch(
+        `${API}/buscar-todos?${montarQS(page)}`
+      );
+
+      if (!resp.ok) {
+        throw new Error(`Falha ao buscar página ${page}`);
+      }
+
+      const payload = await resp.json();
+
+      tudo.push(...(payload.items || []));
+
+      setStatus(
+        `🔄 Exportando... página ${page} de ${tp} (itens: ${tudo.length})`,
+        "primary"
+      );
+    }
+
+    if (!tudo.length) {
+      alert("Nenhum dado para exportar.");
+      return;
+    }
+
+    const tudoFormatado = prepararDadosParaExportacao(tudo);
+
+    const ws = XLSX.utils.json_to_sheet(tudoFormatado);
+
+    const wb = XLSX.utils.book_new();
+
+    XLSX.utils.book_append_sheet(wb, ws, "Tudo");
+
+    XLSX.writeFile(
+      wb,
+      "registros_ADD_tudo_filtrado.xlsx"
+    );
+
+    setStatus(
+      `✅ Exportado com sucesso (${tudo.length} registros)`,
+      "success"
+    );
+
+  } catch (err) {
+    console.error(err);
+    setStatus(
+      "❌ Erro ao exportar: " + err.message,
+      "danger"
+    );
+  }
+};
+
+    window.excluirSelecionados = async function () {
+      const selecionados = [...document.querySelectorAll(".check-item:checked")].map(cb => cb.value);
+
+      if (selecionados.length === 0) {
+        alert("Selecione ao menos um registro.");
+        return;
+      }
+
+      const confirmar = confirm(
+        `⚠️ Tem certeza que deseja excluir ${selecionados.length} registro(s)?\n\nEssa ação NÃO pode ser desfeita.`
+      );
+
+      if (!confirmar) return;
+
+      try {
+        const resp = await authFetch(`${API}/excluir`, {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json"
+  },
+  body: JSON.stringify({ ids: selecionados })
+});
+
+        if (!resp.ok) {
+          throw new Error("Erro ao excluir");
+        }
+
+        const resultado = await resp.json();
+        alert(`✅ ${resultado.excluidos} registro(s) excluídos com sucesso`);
+
+        await carregarPagina(paginaAtual);
+
+        if (dadosFiltrados.length === 0 && paginaAtual > 1) {
+          await carregarPagina(paginaAtual - 1);
+        }
+      } catch (err) {
+        console.error(err);
+        alert("❌ Erro ao excluir registros");
+      }
+    };
+
+    window.marcarFiltradosComoSolicitado = async function () {
+      lerFiltrosDaTela();
+
+      const marcarTudo = document.getElementById("checkTodosFiltrados").checked;
+
+      if (marcarTudo) {
+        const confirmar = confirm("Marcar TODOS os registros filtrados como SOLICITADO? (todas as páginas)");
+        if (!confirmar) return;
+
+        try {
+          setStatus("🔄 Marcando todos os filtrados como solicitado...", "primary");
+
+          const resp = await authFetch(`${API}/marcar-solicitado-filtro?${montarQS(1, true)}`, {
+  method: "POST"
+});
+
+          const data = await resp.json().catch(() => ({}));
+
+          if (!resp.ok) {
+            throw new Error(data?.erro || "Falha ao marcar filtrados");
+          }
+
+          alert(`✅ Atualizados: ${data.atualizados ?? 0}`);
+          await carregarPagina(1);
+        } catch (err) {
+          console.error(err);
+          alert("❌ Erro: " + err.message);
+          setStatus("❌ Erro ao marcar filtrados: " + err.message, "danger");
+        }
+
+        return;
+      }
+
+      const selecionados = [...document.querySelectorAll(".check-item:checked")].map(cb => cb.value);
+
+      if (selecionados.length === 0) {
+        alert("Selecione registros na tabela OU marque 'Selecionar TODOS filtrados'.");
+        return;
+      }
+
+      const confirmar = confirm(`Marcar ${selecionados.length} registro(s) como SOLICITADO?`);
+      if (!confirmar) return;
+
+      try {
+        setStatus("🔄 Marcando selecionados como solicitado...", "primary");
+
+        const resp = await authFetch(`${API}/marcar-solicitado`, {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json"
+  },
+  body: JSON.stringify({ ids: selecionados })
+});
+
+        const data = await resp.json().catch(() => ({}));
+
+        if (!resp.ok) {
+          throw new Error(data?.erro || "Falha ao marcar selecionados");
+        }
+
+        alert(`✅ Atualizados: ${data.atualizados ?? 0}`);
+        await carregarPagina(paginaAtual);
+      } catch (err) {
+        console.error(err);
+        alert("❌ Erro: " + err.message);
+        setStatus("❌ Erro ao marcar selecionados: " + err.message, "danger");
+      }
+    };
+
+    document.getElementById("bloqMatricula").addEventListener("blur", async () => {
+      const valor = document.getElementById("bloqMatricula").value.trim();
+
+      if (valor) {
+        await carregarCalendarioColaborador();
+        await carregarBloqueiosAtivos();
+      } else {
+        document.getElementById("painelListaBloqueios").style.display = "none";
+        document.getElementById("painelListaBloqueios").classList.remove("show");
+        document.getElementById("tabelaBloqueios").innerHTML = `
+          <tr>
+            <td colspan="6" class="text-center text-muted py-3">
+              Informe uma matrícula para consultar os bloqueios.
+            </td>
+          </tr>
+        `;
+      }
+    });
+
+    document.getElementById("bloqDataInicio").addEventListener("change", () => {
+      const valor = document.getElementById("bloqDataInicio").value.trim();
+      if (valor) {
+        diaSelecionado = valor;
+        const [a, m] = valor.split("-");
+        calendarioDataAtual = new Date(Number(a), Number(m) - 1, 1);
+        renderCalendarioColaborador();
+      }
+    });
+
+    document.getElementById("bloqDataFim").addEventListener("change", () => {
+      const inicio = document.getElementById("bloqDataInicio").value.trim();
+      const fim = document.getElementById("bloqDataFim").value.trim();
+
+      if (inicio && fim && fim < inicio) {
+        alert("A data fim não pode ser menor que a data início.");
+        document.getElementById("bloqDataFim").value = inicio;
+      }
+    });
+
+    document.addEventListener("DOMContentLoaded", async () => {
+      lerFiltrosDaTela();
+      await carregarPagina(1);
+    });
+
+    document.getElementById("selectPorPagina").addEventListener("change", async () => {
+      lerFiltrosDaTela();
+      paginaAtual = 1;
+      await carregarPagina(1);
+    });
+
+    document.getElementById("mostrarSolicitados").addEventListener("change", async () => {
+      lerFiltrosDaTela();
+      paginaAtual = 1;
+      await carregarPagina(1);
+    });
+
+    document.getElementById("filtroMatricula").addEventListener("input", async () => {
+      lerFiltrosDaTela();
+      paginaAtual = 1;
+      await carregarPagina(1);
+    });
+
+    document.getElementById("filtroNome").addEventListener("input", async () => {
+      lerFiltrosDaTela();
+      paginaAtual = 1;
+      await carregarPagina(1);
+    });
+  </script>
+   <!-- Cloudflare Web Analytics --><script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "ab3e837119ed4133bd616d3b06ef0e25"}'></script><!-- End Cloudflare Web Analytics -->
+</body>
+</html>
