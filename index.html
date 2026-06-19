@@ -73,28 +73,29 @@
 
     .logout-btn,
     .btn-toggle-bloqueio{
-      border:none;
-      color:#fff;
-      font-weight:700;
-      transition:.25s;
-    }
+  background:var(--energisa-orange);
+  padding:10px 16px;
+  border-radius:var(--radius-sm);
+}
 
-    .logout-btn{
-      background:var(--energisa-orange);
-      ping:8px 15px;
-      border-radius:6px;
-    }
+    
+.logout-btn{
+  background:var(--energisa-orange);
+  padding:8px 15px;
+  border-radius:6px;
+}
+
 
     .logout-btn:hover,
     .btn-toggle-bloqueio:hover{
       background:#d95f1c;
     }
 
-    .btn-toggle-bloqueio{
-      background:var(--energisa-orange);
-      ping:10px 16px;
-      border-radius:var(--radius-sm);
-    }
+   .btn-toggle-bloqueio{
+  background:var(--energisa-orange);
+  padding:10px 16px;
+  border-radius:var(--radius-sm);
+}
 
     .btn-toggle-bloqueio.ativo{
       background:#b84d14;
@@ -444,10 +445,12 @@
       color:#343a40;
     }
 
-    .cal-dia.{
-      background:var(--cal-);
-      color:var(--cal--text);
+    
+    .cal-dia.add{
+      background:var(--cal-add);
+      color:var(--cal-add-text);
     }
+
 
     .cal-dia.bloqueado{
       background:var(--cal-block);
@@ -607,6 +610,10 @@
         <button id="btnToggleBloqueio" class="btn-toggle-bloqueio" onclick="togglePainelBloqueio()">
           🔒 Mostrar bloqueio de colaborador
         </button>
+
+        <button id="btnToggleUsuarios" class="btn-toggle-bloqueio" onclick="togglePainelUsuarios()">
+        👥 Mostrar usuários
+      </button>
       </div>
     </div>
 
@@ -720,6 +727,83 @@
         </table>
       </div>
     </div>
+
+     <div id="painelUsuarios" class="filter-card mb-4 painel-oculto">
+  <div class="filter-title">
+    <div>
+      <h6>👥 Gerenciar usuários</h6>
+      <p class="filter-sub">Somente administradores podem adicionar, excluir e ativar/desativar usuários.</p>
+    </div>
+    <button class="btn btn-outline-primary btn-sm" onclick="carregarUsuarios()">Atualizar lista</button>
+  </div>
+
+  <div class="row g-3">
+    <div class="col-lg-3 col-md-6">
+      <div class="field-label">Matrícula</div>
+      <input type="text" id="novoUserMatricula" class="form-control" placeholder="Digite a matrícula">
+    </div>
+
+    <div class="col-lg-4 col-md-6">
+      <div class="field-label">Nome</div>
+      <input type="text" id="novoUserNome" class="form-control" placeholder="Digite o nome">
+    </div>
+
+    <div class="col-lg-3 col-md-6">
+      <div class="field-label">Senha</div>
+      <input type="password" id="novoUserSenha" class="form-control" placeholder="Digite a senha">
+    </div>
+
+    <div class="col-lg-2 col-md-6">
+      <div class="field-label">Perfil</div>
+      <select id="novoUserRole" class="form-select">
+        <option value="usuario" selected>Usuário</option>
+        <option value="admin">Admin</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="d-flex gap-2 flex-wrap">
+    <button class="btn btn-success" onclick="adicionarUsuario()">➕ Adicionar usuário</button>
+    <button class="btn btn-outline-secondary" onclick="limparFormularioUsuario()">♻️ Limpar</button>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="row g-3">
+    <div class="col-lg-6 col-md-8">
+      <div class="field-label">Pesquisar usuário</div>
+      <input
+        type="text"
+        id="pesquisaUsuario"
+        class="form-control"
+        placeholder="Digite nome ou matrícula..."
+      >
+      <div class="help">Busca inteligente por nome ou matrícula.</div>
+    </div>
+  </div>
+
+  <div class="mini-table-wrap mt-3">
+    <table class="table table-sm table-bordered table-hover mb-0">
+      <thead class="table-light">
+        <tr>
+          <th>Matrícula</th>
+          <th>Nome</th>
+          <th>Perfil</th>
+          <th>Ativo</th>
+          <th>Criado em</th>
+          <th>Ações</th>
+        </tr>
+      </thead>
+      <tbody id="tabelaUsuarios">
+        <tr>
+          <td colspan="6" class="text-center text-muted py-3">Carregando usuários...</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
 
     <div class="filters-card mb-4">
       <div class="filters-header">
@@ -890,6 +974,7 @@ if (!user || !user.matricula) {
     let totalPages = 1;
     let totalItems = 0;
     let dadosFiltrados = [];
+    let usuariosCache = [];
 
     let calendarioDataAtual = new Date();
     let calendarioLancamentos = [];
@@ -1255,25 +1340,62 @@ if (!user || !user.matricula) {
       }
     };
 
+    window.togglePainelUsuarios = function () {
+  const painel = document.getElementById("painelUsuarios");
+  const botao = document.getElementById("btnToggleUsuarios");
+
+  const painelBloqueio = document.getElementById("painelBloqueio");
+  const botaoBloqueio = document.getElementById("btnToggleBloqueio");
+
+  const aberto = painel.classList.contains("show");
+
+  if (aberto) {
+    painel.classList.remove("show");
+    botao.classList.remove("ativo");
+    botao.innerText = "👥 Mostrar usuários";
+
+    const campoBusca = document.getElementById("pesquisaUsuario");
+    if (campoBusca) campoBusca.value = "";
+    renderUsuariosFiltrados();
+
+  } else {
+    painelBloqueio.classList.remove("show");
+    botaoBloqueio.classList.remove("ativo");
+    botaoBloqueio.innerText = "🔒 Mostrar bloqueio de colaborador";
+
+    painel.classList.add("show");
+    botao.classList.add("ativo");
+    botao.innerText = "🔓 Ocultar usuários";
+
+    carregarUsuarios();
+  }
+};
     window.togglePainelBloqueio = function () {
-      const painel = document.getElementById("painelBloqueio");
-      const painelLista = document.getElementById("painelListaBloqueios");
-      const botao = document.getElementById("btnToggleBloqueio");
+  const painel = document.getElementById("painelBloqueio");
+  const painelLista = document.getElementById("painelListaBloqueios");
+  const botao = document.getElementById("btnToggleBloqueio");
 
-      const aberto = painel.classList.contains("show");
+  const painelUsuarios = document.getElementById("painelUsuarios");
+  const botaoUsuarios = document.getElementById("btnToggleUsuarios");
 
-      if (aberto) {
-        painel.classList.remove("show");
-        painelLista.classList.remove("show");
-        painelLista.style.display = "none";
-        botao.classList.remove("ativo");
-        botao.innerText = "🔒 Mostrar bloqueio de colaborador";
-      } else {
-        painel.classList.add("show");
-        botao.classList.add("ativo");
-        botao.innerText = "🔓 Ocultar bloqueio de colaborador";
-      }
-    };
+  const aberto = painel.classList.contains("show");
+
+  if (aberto) {
+    painel.classList.remove("show");
+    painelLista.classList.remove("show");
+    painelLista.style.display = "none";
+    botao.classList.remove("ativo");
+    botao.innerText = "🔒 Mostrar bloqueio de colaborador";
+  } else {
+    painelUsuarios.classList.remove("show");
+    botaoUsuarios.classList.remove("ativo");
+    botaoUsuarios.innerText = "👥 Mostrar usuários";
+
+    painel.classList.add("show");
+    botao.classList.add("ativo");
+    botao.innerText = "🔓 Ocultar bloqueio de colaborador";
+  }
+};
 
     window.carregarCalendarioColaborador = async function () {
   const matricula = document.getElementById("bloqMatricula").value.trim();
@@ -1612,7 +1734,7 @@ if (!user || !user.matricula) {
       try {
         setStatus("🔄 Carregando dados...", "primary");
 
-        const resp = await authFetch(`${API}/buscar-todos?${montarQS(paginaAtual)}`);
+        const resp = await authFetch(`${API}/buscar-todos?${montarQS(page)}`);
 
         if (!resp.ok) {
           const t = await resp.text();
@@ -1936,6 +2058,105 @@ if (!user || !user.matricula) {
       }
     });
 
+    window.carregarUsuarios = async function () {
+  const tbody = document.getElementById("tabelaUsuarios");
+
+  tbody.innerHTML = `
+    <tr>
+      <td colspan="6" class="text-center text-muted py-3">Carregando usuários...</td>
+    </tr>
+  `;
+
+  try {
+    const resp = await authFetch(`${API}/usuarios`);
+
+    const json = await resp.json().catch(() => ({}));
+
+    if (!resp.ok || json.ok === false) {
+      throw new Error(json.error || "Erro ao carregar usuários.");
+    }
+
+    usuariosCache = json.items || [];
+    renderUsuariosFiltrados();
+
+  } catch (err) {
+    console.error(err);
+    usuariosCache = [];
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="6" class="text-center text-danger py-3">Erro ao carregar usuários.</td>
+      </tr>
+    `;
+  }
+};
+
+    function renderUsuariosFiltrados() {
+  const tbody = document.getElementById("tabelaUsuarios");
+  const termo = normalizarTextoBusca(
+    document.getElementById("pesquisaUsuario")?.value || ""
+  );
+
+  let lista = [...usuariosCache];
+
+  if (termo) {
+    lista = lista.filter(item => {
+      const nome = normalizarTextoBusca(item.nome || "");
+      const matricula = String(item.matricula || "").trim().toLowerCase();
+      return nome.includes(termo) || matricula.includes(termo);
+    });
+  }
+
+  if (!lista.length) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="6" class="text-center text-muted py-3">
+          Nenhum usuário encontrado.
+        </td>
+      </tr>
+    `;
+    return;
+  }
+
+  tbody.innerHTML = lista.map(item => `
+    <tr>
+      <td>${escaparHTML(item.matricula)}</td>
+      <td>${escaparHTML(item.nome)}</td>
+      <td>${escaparHTML(item.role)}</td>
+      <td>${Number(item.ativo) === 1 ? "Sim" : "Não"}</td>
+      <td>${escaparHTML(item.criado_em || "")}</td>
+      <td class="d-flex gap-2 flex-wrap">
+        <button
+          class="btn btn-sm btn-outline-${Number(item.ativo) === 1 ? "warning" : "success"}"
+          onclick="toggleUsuarioAtivo('${escaparHTML(item.matricula)}', ${Number(item.ativo) === 1 ? 0 : 1})"
+        >
+          ${Number(item.ativo) === 1 ? "Desativar" : "Ativar"}
+        </button>
+
+        <button
+          class="btn btn-sm btn-outline-danger"
+          onclick="excluirUsuario('${escaparHTML(item.matricula)}')"
+        >
+          Excluir
+        </button>
+      </td>
+    </tr>
+  `).join("");
+}
+    window.limparFormularioUsuario = function () {
+  document.getElementById("novoUserMatricula").value = "";
+  document.getElementById("novoUserNome").value = "";
+  document.getElementById("novoUserSenha").value = "";
+  document.getElementById("novoUserRole").value = "usuario";
+
+  const campoBusca = document.getElementById("pesquisaUsuario");
+  if (campoBusca) {
+    campoBusca.value = "";
+  }
+
+  renderUsuariosFiltrados();
+};
+    
+
     document.getElementById("bloqDataInicio").addEventListener("change", () => {
       const valor = document.getElementById("bloqDataInicio").value.trim();
       if (valor) {
@@ -1945,6 +2166,36 @@ if (!user || !user.matricula) {
         renderCalendarioColaborador();
       }
     });
+    window.togglePainelUsuarios = function () {
+  const painel = document.getElementById("painelUsuarios");
+  const botao = document.getElementById("btnToggleUsuarios");
+
+  const painelBloqueio = document.getElementById("painelBloqueio");
+  const botaoBloqueio = document.getElementById("btnToggleBloqueio");
+
+  const aberto = painel.classList.contains("show");
+
+  if (aberto) {
+    painel.classList.remove("show");
+    botao.classList.remove("ativo");
+    botao.innerText = "👥 Mostrar usuários";
+
+    const campoBusca = document.getElementById("pesquisaUsuario");
+    if (campoBusca) campoBusca.value = "";
+
+  } else {
+    painelBloqueio.classList.remove("show");
+    botaoBloqueio.classList.remove("ativo");
+    botaoBloqueio.innerText = "🔒 Mostrar bloqueio de colaborador";
+
+    painel.classList.add("show");
+    botao.classList.add("ativo");
+    botao.innerText = "🔓 Ocultar usuários";
+
+    carregarUsuarios();
+  }
+};
+    
 
     document.getElementById("bloqDataFim").addEventListener("change", () => {
       const inicio = document.getElementById("bloqDataInicio").value.trim();
@@ -1984,6 +2235,14 @@ if (!user || !user.matricula) {
       paginaAtual = 1;
       await carregarPagina(1);
     });
+
+       
+document.addEventListener("input", function (e) {
+  if (e.target && e.target.id === "pesquisaUsuario") {
+    renderUsuariosFiltrados();
+  }
+});
+
   </script>
    <!-- Cloudflare Web Analytics --><script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "ab3e837119ed4133bd616d3b06ef0e25"}'></script><!-- End Cloudflare Web Analytics -->
 </body>
