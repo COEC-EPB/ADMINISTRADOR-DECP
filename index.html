@@ -607,13 +607,17 @@
           <p class="filter-sub m-0">Abra o painel de bloqueio apenas quando precisar.</p>
         </div>
 
-        <button id="btnToggleBloqueio" class="btn-toggle-bloqueio" onclick="togglePainelBloqueio()">
-          🔒 Mostrar bloqueio de colaborador
-        </button>
+        
+<div class="d-flex gap-2 flex-wrap">
+  <button id="btnToggleBloqueio" class="btn-toggle-bloqueio" onclick="togglePainelBloqueio()">
+    🔒 Mostrar bloqueio de colaborador
+  </button>
 
-        <button id="btnToggleUsuarios" class="btn-toggle-bloqueio" onclick="togglePainelUsuarios()">
-        👥 Mostrar usuários
-      </button>
+  <button id="btnToggleUsuarios" class="btn-toggle-bloqueio" onclick="togglePainelUsuarios()">
+    👥 Mostrar usuários
+  </button>
+</div>
+
       </div>
     </div>
 
@@ -1340,36 +1344,7 @@ if (!user || !user.matricula) {
       }
     };
 
-    window.togglePainelUsuarios = function () {
-  const painel = document.getElementById("painelUsuarios");
-  const botao = document.getElementById("btnToggleUsuarios");
-
-  const painelBloqueio = document.getElementById("painelBloqueio");
-  const botaoBloqueio = document.getElementById("btnToggleBloqueio");
-
-  const aberto = painel.classList.contains("show");
-
-  if (aberto) {
-    painel.classList.remove("show");
-    botao.classList.remove("ativo");
-    botao.innerText = "👥 Mostrar usuários";
-
-    const campoBusca = document.getElementById("pesquisaUsuario");
-    if (campoBusca) campoBusca.value = "";
-    renderUsuariosFiltrados();
-
-  } else {
-    painelBloqueio.classList.remove("show");
-    botaoBloqueio.classList.remove("ativo");
-    botaoBloqueio.innerText = "🔒 Mostrar bloqueio de colaborador";
-
-    painel.classList.add("show");
-    botao.classList.add("ativo");
-    botao.innerText = "🔓 Ocultar usuários";
-
-    carregarUsuarios();
-  }
-};
+ 
     window.togglePainelBloqueio = function () {
   const painel = document.getElementById("painelBloqueio");
   const painelLista = document.getElementById("painelListaBloqueios");
@@ -2193,6 +2168,112 @@ if (!user || !user.matricula) {
     botao.innerText = "🔓 Ocultar usuários";
 
     carregarUsuarios();
+  }
+};
+    window.adicionarUsuario = async function () {
+  const matricula = document.getElementById("novoUserMatricula").value.trim();
+  const nome = document.getElementById("novoUserNome").value.trim();
+  const senha = document.getElementById("novoUserSenha").value.trim();
+  const roleTela = document.getElementById("novoUserRole").value.trim();
+
+  const role = roleTela === "admin" ? "admin" : "user";
+
+  if (!matricula || !nome || !senha) {
+    alert("Preencha matrícula, nome e senha.");
+    return;
+  }
+
+  try {
+    setStatus("🔄 Adicionando usuário...", "primary");
+
+    const resp = await authFetch(`${API}/usuarios`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        matricula,
+        nome,
+        senha,
+        role
+      })
+    });
+
+    const json = await resp.json().catch(() => ({}));
+
+    if (!resp.ok || json.ok === false) {
+      throw new Error(json.error || "Erro ao adicionar usuário.");
+    }
+
+    alert("✅ Usuário adicionado com sucesso.");
+    limparFormularioUsuario();
+    await carregarUsuarios();
+    setStatus("✅ Usuário adicionado com sucesso.", "success");
+
+  } catch (err) {
+    console.error(err);
+    alert("❌ " + err.message);
+    setStatus("❌ Erro ao adicionar usuário: " + err.message, "danger");
+  }
+};
+
+window.excluirUsuario = async function (matricula) {
+  if (!matricula) return;
+
+  const confirmar = confirm(`Tem certeza que deseja excluir o usuário ${matricula}?`);
+  if (!confirmar) return;
+
+  try {
+    setStatus("🔄 Excluindo usuário...", "primary");
+
+    const resp = await authFetch(`${API}/usuarios/${encodeURIComponent(matricula)}`, {
+      method: "DELETE"
+    });
+
+    const json = await resp.json().catch(() => ({}));
+
+    if (!resp.ok || json.ok === false) {
+      throw new Error(json.error || "Erro ao excluir usuário.");
+    }
+
+    alert("✅ Usuário excluído com sucesso.");
+    await carregarUsuarios();
+    setStatus("✅ Usuário excluído com sucesso.", "success");
+
+  } catch (err) {
+    console.error(err);
+    alert("❌ " + err.message);
+    setStatus("❌ Erro ao excluir usuário: " + err.message, "danger");
+  }
+};
+
+window.toggleUsuarioAtivo = async function (matricula, ativo) {
+  if (!matricula) return;
+
+  try {
+    setStatus("🔄 Atualizando usuário...", "primary");
+
+    const resp = await authFetch(`${API}/usuarios/${encodeURIComponent(matricula)}/ativo`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ ativo })
+    });
+
+    const json = await resp.json().catch(() => ({}));
+
+    if (!resp.ok || json.ok === false) {
+      throw new Error(json.error || "Erro ao atualizar usuário.");
+    }
+
+    await carregarUsuarios();
+    setStatus("✅ Usuário atualizado com sucesso.", "success");
+
+  } catch (err) {
+    console.error(err);
+    alert("❌ " + err.message);
+    setStatus("❌ Erro ao atualizar usuário: " + err.message, "danger");
   }
 };
     
