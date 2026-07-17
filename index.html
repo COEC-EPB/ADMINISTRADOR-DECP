@@ -609,13 +609,25 @@
 
         
 <div class="d-flex gap-2 flex-wrap">
-  <button id="btnToggleBloqueio" class="btn-toggle-bloqueio" onclick="togglePainelBloqueio()">
+
+  <button id="btnToggleBloqueio"
+          class="btn-toggle-bloqueio"
+          onclick="togglePainelBloqueio()">
     🔒 Mostrar bloqueio de colaborador
   </button>
 
-  <button id="btnToggleUsuarios" class="btn-toggle-bloqueio" onclick="togglePainelUsuarios()">
+  <button id="btnToggleUsuarios"
+          class="btn-toggle-bloqueio"
+          onclick="togglePainelUsuarios()">
     👥 Mostrar usuários
   </button>
+
+  <button id="btnToggleSaldo"
+          class="btn-toggle-bloqueio"
+          onclick="togglePainelSaldo()">
+    💰 Banco ADD
+  </button>
+
 </div>
 
       </div>
@@ -809,6 +821,58 @@
   </div>
 </div>
 
+    <div id="painelSaldo" class="filter-card mb-4 painel-oculto">
+
+  <div class="filter-title">
+    <div>
+      <h6>💰 Banco de ADD</h6>
+      <p class="filter-sub">
+        Controle e ajuste do saldo dos colaboradores.
+      </p>
+    </div>
+
+    <button
+      class="btn btn-outline-primary btn-sm"
+      onclick="carregarSaldosADD()"
+    >
+      Atualizar lista
+    </button>
+  </div>
+
+  <div class="mini-table-wrap">
+
+    <table class="table table-sm table-bordered table-hover mb-0">
+
+      <thead class="table-light">
+
+        <tr>
+          <th>Matrícula</th>
+          <th>Nome</th>
+          <th>Regional</th>
+          <th>Inicial</th>
+          <th>Utilizados</th>
+          <th>Saldo</th>
+          <th>Ação</th>
+        </tr>
+
+      </thead>
+
+      <tbody id="tabelaSaldoADD">
+
+        <tr>
+          <td colspan="7" class="text-center text-muted py-3">
+            Clique em "Atualizar lista"
+          </td>
+        </tr>
+
+      </tbody>
+
+    </table>
+
+  </div>
+
+</div>
+
     <div class="filters-card mb-4">
       <div class="filters-header">
         <div class="filters-title-wrap">
@@ -957,6 +1021,55 @@
       </table>
     </div>
   </div>
+  <div class="modal fade"
+     id="modalSaldoADD"
+     tabindex="-1">
+
+  <div class="modal-dialog">
+
+    <div class="modal-content">
+
+      <div class="modal-header">
+
+        <h5 class="modal-title">
+          Alterar Banco ADD
+        </h5>
+
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="modal">
+        </button>
+
+      </div>
+
+      <div class="modal-body">
+
+        <input
+          type="hidden"
+          id="saldoMatricula">
+
+        <div class="mb-3">
+          <label class="form-label">
+            Matrícula
+          </label>
+
+          <input
+            class="form-control"
+            id="saldoMatriculaView"
+            disabled>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">
+            Ano
+          </label>
+
+          <input
+            type="number"
+            class="form-control"
+            id="saldoAno">
+        </
   <script src="https://coec-epb.github.io/LOGIN_DECP/auth.js"></script>
   <script>
     if (!isLogged()) {
@@ -2323,6 +2436,310 @@ document.addEventListener("input", function (e) {
     renderUsuariosFiltrados();
   }
 });
+    // =========================
+// BANCO DE ADD
+// =========================
+
+window.togglePainelSaldo = async function(){
+
+    const painel =
+        document.getElementById("painelSaldo");
+
+    const botao =
+        document.getElementById("btnToggleSaldo");
+
+    const aberto =
+        painel.classList.contains("show");
+
+    if(aberto){
+
+        painel.classList.remove("show");
+
+        botao.classList.remove("ativo");
+
+        botao.innerText =
+            "💰 Banco ADD";
+
+        return;
+    }
+
+    painel.classList.add("show");
+
+    botao.classList.add("ativo");
+
+    botao.innerText =
+        "💰 Ocultar Banco ADD";
+
+    await carregarSaldosADD();
+
+};
+
+async function carregarSaldosADD(){
+
+    const tbody =
+        document.getElementById(
+            "tabelaSaldoADD"
+        );
+
+    tbody.innerHTML = `
+        <tr>
+            <td colspan="7"
+                class="text-center py-3">
+                Carregando...
+            </td>
+        </tr>
+    `;
+
+    try{
+
+        const resp =
+            await authFetch(
+                `${API}/saldo-add-admin`
+            );
+
+        const json =
+            await resp.json();
+
+        const lista =
+            json.items || [];
+
+        if(!lista.length){
+
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="7"
+                        class="text-center py-3">
+                        Nenhum saldo encontrado
+                    </td>
+                </tr>
+            `;
+
+            return;
+        }
+
+        tbody.innerHTML =
+            lista.map(item => `
+
+                <tr>
+
+                    <td>
+                        ${item.matricula || ""}
+                    </td>
+
+                    <td>
+                        ${item.nome || ""}
+                    </td>
+
+                    <td>
+                        ${item.regional || ""}
+                    </td>
+
+                    <td>
+                        ${item.quantidade_inicial || 0}
+                    </td>
+
+                    <td>
+                        ${item.utilizados || 0}
+                    </td>
+
+                    <td>
+                        <span class="badge bg-success">
+                            ${item.saldo || 0}
+                        </span>
+                    </td>
+
+                    <td>
+
+                        <button
+                            class="btn btn-sm btn-primary"
+
+                            onclick="abrirModalSaldoADD(
+                                '${item.matricula}',
+                                '${item.nome || ""}',
+                                ${item.ano || new Date().getFullYear()},
+                                ${item.mes || (new Date().getMonth()+1)},
+                                ${item.quantidade_inicial || 20}
+                            )"
+                        >
+                            Alterar
+                        </button>
+
+                    </td>
+
+                </tr>
+
+            `).join("");
+
+    }catch(err){
+
+        console.error(err);
+
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="7"
+                    class="text-center text-danger">
+                    Erro ao carregar saldos
+                </td>
+            </tr>
+        `;
+    }
+
+}
+
+window.abrirModalSaldoADD =
+function(
+    matricula,
+    nome,
+    ano,
+    mes,
+    quantidade
+){
+
+    document.getElementById(
+        "saldoMatricula"
+    ).value = matricula;
+
+    document.getElementById(
+        "saldoMatriculaView"
+    ).value =
+        matricula + " - " + nome;
+
+    document.getElementById(
+        "saldoAno"
+    ).value = ano;
+
+    document.getElementById(
+        "saldoMes"
+    ).value = mes;
+
+    document.getElementById(
+        "saldoQuantidade"
+    ).value = quantidade;
+
+    const modal =
+        new bootstrap.Modal(
+            document.getElementById(
+                "modalSaldoADD"
+            )
+        );
+
+    modal.show();
+
+};
+
+window.salvarSaldoADD =
+async function(){
+
+    const matricula =
+        document.getElementById(
+            "saldoMatricula"
+        ).value;
+
+    const ano =
+        Number(
+            document.getElementById(
+                "saldoAno"
+            ).value
+        );
+
+    const mes =
+        Number(
+            document.getElementById(
+                "saldoMes"
+            ).value
+        );
+
+    const quantidade =
+        Number(
+            document.getElementById(
+                "saldoQuantidade"
+            ).value
+        );
+
+    if(!matricula){
+
+        alert(
+            "Matrícula inválida"
+        );
+
+        return;
+    }
+
+    try{
+
+        setStatus(
+            "🔄 Atualizando saldo...",
+            "primary"
+        );
+
+        const resp =
+            await authFetch(
+
+                `${API}/alterar-saldo`,
+
+                {
+
+                    method:"POST",
+
+                    headers:{
+                        "Content-Type":
+                        "application/json"
+                    },
+
+                    body:JSON.stringify({
+
+                        matricula,
+                        ano,
+                        mes,
+                        quantidade,
+
+                        descricao:
+                        "Alteração manual pelo administrador"
+
+                    })
+
+                }
+
+            );
+
+        const json =
+            await resp.json()
+            .catch(() => ({}));
+
+        if(
+            !resp.ok ||
+            json.ok === false
+        ){
+
+            throw new Error(
+                json.error ||
+                "Erro ao atualizar saldo"
+            );
+
+        }
+
+        alert(
+            "✅ Saldo atualizado com sucesso"
+        );
+
+        bootstrap.Modal
+            .getInstance(
+                document.getElementById(
+                    "modalSaldoADD"
+                )
+            )
+            .hide();
+
+        await carregarSaldosADD();
+
+        setStatus(
+            "✅ Saldo atualizado com sucesso",
+            "success"
+        );
+
+    }catch(err){
+
+        console
 
   </script>
    <!-- Cloudflare Web Analytics --><script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "ab3e837119ed4133bd616d3b06ef0e25"}'></script><!-- End Cloudflare Web Analytics -->
