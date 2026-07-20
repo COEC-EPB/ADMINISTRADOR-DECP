@@ -1021,7 +1021,7 @@
       </table>
     </div>
   </div>
-  <div class="modal fade"
+ <div class="modal fade"
      id="modalSaldoADD"
      tabindex="-1">
 
@@ -1050,6 +1050,7 @@
           id="saldoMatricula">
 
         <div class="mb-3">
+
           <label class="form-label">
             Matrícula
           </label>
@@ -1058,9 +1059,11 @@
             class="form-control"
             id="saldoMatriculaView"
             disabled>
+
         </div>
 
         <div class="mb-3">
+
           <label class="form-label">
             Ano
           </label>
@@ -1069,7 +1072,64 @@
             type="number"
             class="form-control"
             id="saldoAno">
-        </
+
+        </div>
+
+        <div class="mb-3">
+
+          <label class="form-label">
+            Mês
+          </label>
+
+          <input
+            type="number"
+            class="form-control"
+            id="saldoMes">
+
+        </div>
+
+        <div class="mb-3">
+
+          <label class="form-label">
+            Quantidade
+          </label>
+
+          <input
+            type="number"
+            class="form-control"
+            id="saldoQuantidade">
+
+        </div>
+
+      </div>
+
+      <div class="modal-footer">
+
+        <button
+          type="button"
+          class="btn btn-secondary"
+          data-bs-dismiss="modal">
+
+          Cancelar
+
+        </button>
+
+        <button
+          type="button"
+          class="btn btn-primary"
+          onclick="salvarSaldoADD()">
+
+          Salvar
+
+        </button>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
   <script src="https://coec-epb.github.io/LOGIN_DECP/auth.js"></script>
   <script>
     if (!isLogged()) {
