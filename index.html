@@ -2799,7 +2799,20 @@ async function(){
 
     }catch(err){
 
-        console
+    console.error(err);
+
+    alert(
+        "❌ " + err.message
+    );
+
+    setStatus(
+        "❌ " + err.message,
+        "danger"
+    );
+
+}
+
+};
 
   </script>
    <!-- Cloudflare Web Analytics --><script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "ab3e837119ed4133bd616d3b06ef0e25"}'></script><!-- End Cloudflare Web Analytics -->
