@@ -5,10 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Painel do Administrador - ADD</title>
 
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
-  <script src ="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" rel="stylesheet" />
-  <script src="https://coec-epb.github.io/LOGIN_DECP/auth.js"></script>
-  <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+  <link
+  href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+  rel="stylesheet"/>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+
 
   <style>
     :root{
@@ -826,12 +830,23 @@
     <div id="painelSaldo" class="filter-card mb-4 painel-oculto">
 
   <div class="filter-title">
-    <div>
-      <h6>💰 Banco de ADD</h6>
-      <p class="filter-sub">
-        Controle e ajuste do saldo dos colaboradores.
-      </p>
-    </div>
+
+  <div>
+    <h6>💰 Banco de ADD</h6>
+    <p class="filter-sub">
+      Controle e ajuste do saldo dos colaboradores.
+    </p>
+  </div>
+
+  <div class="d-flex gap-2 flex-wrap">
+
+    <input
+      type="text"
+      id="pesquisaSaldoADD"
+      class="form-control"
+      placeholder="Pesquisar nome ou matrícula..."
+      style="min-width:280px;"
+    >
 
     <button
       class="btn btn-outline-primary btn-sm"
@@ -839,7 +854,10 @@
     >
       Atualizar lista
     </button>
+
   </div>
+
+</div>
 
   <div class="mini-table-wrap">
 
@@ -2346,12 +2364,21 @@ if (!user || !user.matricula) {
   }
 };
     window.adicionarUsuario = async function () {
-  const matricula = document.getElementById("novoUserMatricula").value.trim();
-  const nome = document.getElementById("novoUserNome").value.trim();
-  const senha = document.getElementById("novoUserSenha").value.trim();
-  const roleTela = document.getElementById("novoUserRole").value.trim();
 
-  const role = roleTela === "admin" ? "admin" : "user";
+  const matricula =
+    document.getElementById("novoUserMatricula").value.trim();
+
+  const nome =
+    document.getElementById("novoUserNome").value.trim();
+
+  const senha =
+    document.getElementById("novoUserSenha").value.trim();
+
+  const roleTela =
+    document.getElementById("novoUserRole").value.trim();
+
+  const role =
+    roleTela === "admin" ? "admin" : "user";
 
   if (!matricula || !nome || !senha) {
     alert("Preencha matrícula, nome e senha.");
@@ -2359,37 +2386,79 @@ if (!user || !user.matricula) {
   }
 
   try {
-    setStatus("🔄 Adicionando usuário...", "primary");
 
-    const resp = await authFetch(`${API}/usuarios`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        matricula,
-        nome,
-        senha,
-        role
-      })
-    });
+    setStatus(
+      "🔄 Adicionando usuário...",
+      "primary"
+    );
 
-    const json = await resp.json().catch(() => ({}));
+    const payload = {
+      matricula,
+      nome,
+      senha,
+      role
+    };
+
+    console.log(
+      "Payload enviado para /usuarios:",
+      payload
+    );
+
+    const resp =
+      await authFetch(
+        `${API}/usuarios`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify(payload)
+        }
+      );
+
+    const json =
+      await resp.json()
+      .catch(() => ({}));
+
+    console.log(
+      "Resposta /usuarios:",
+      json
+    );
 
     if (!resp.ok || json.ok === false) {
-      throw new Error(json.error || "Erro ao adicionar usuário.");
+      throw new Error(
+        json.error ||
+        json.erro ||
+        "Erro ao adicionar usuário."
+      );
     }
 
     alert("✅ Usuário adicionado com sucesso.");
+
     limparFormularioUsuario();
+
     await carregarUsuarios();
-    setStatus("✅ Usuário adicionado com sucesso.", "success");
+
+    setStatus(
+      "✅ Usuário adicionado com sucesso.",
+      "success"
+    );
 
   } catch (err) {
+
     console.error(err);
-    alert("❌ " + err.message);
-    setStatus("❌ Erro ao adicionar usuário: " + err.message, "danger");
+
+    alert(
+      "❌ " + err.message
+    );
+
+    setStatus(
+      "❌ Erro ao adicionar usuário: " + err.message,
+      "danger"
+    );
+
   }
+
 };
 
 window.excluirUsuario = async function (matricula) {
@@ -2499,8 +2568,11 @@ document.addEventListener("input", function (e) {
   }
 });
     // =========================
+// =========================
 // BANCO DE ADD
 // =========================
+
+let saldosADDCache = [];
 
 window.togglePainelSaldo = async function(){
 
@@ -2509,6 +2581,18 @@ window.togglePainelSaldo = async function(){
 
     const botao =
         document.getElementById("btnToggleSaldo");
+
+    const painelBloqueio =
+        document.getElementById("painelBloqueio");
+
+    const botaoBloqueio =
+        document.getElementById("btnToggleBloqueio");
+
+    const painelUsuarios =
+        document.getElementById("painelUsuarios");
+
+    const botaoUsuarios =
+        document.getElementById("btnToggleUsuarios");
 
     const aberto =
         painel.classList.contains("show");
@@ -2525,6 +2609,26 @@ window.togglePainelSaldo = async function(){
         return;
     }
 
+    if(painelBloqueio){
+        painelBloqueio.classList.remove("show");
+    }
+
+    if(botaoBloqueio){
+        botaoBloqueio.classList.remove("ativo");
+        botaoBloqueio.innerText =
+            "🔒 Mostrar bloqueio de colaborador";
+    }
+
+    if(painelUsuarios){
+        painelUsuarios.classList.remove("show");
+    }
+
+    if(botaoUsuarios){
+        botaoUsuarios.classList.remove("ativo");
+        botaoUsuarios.innerText =
+            "👥 Mostrar usuários";
+    }
+
     painel.classList.add("show");
 
     botao.classList.add("ativo");
@@ -2539,98 +2643,50 @@ window.togglePainelSaldo = async function(){
 async function carregarSaldosADD(){
 
     const tbody =
-        document.getElementById(
-            "tabelaSaldoADD"
-        );
+        document.getElementById("tabelaSaldoADD");
 
     tbody.innerHTML = `
         <tr>
-            <td colspan="7"
-                class="text-center py-3">
-                Carregando...
+            <td colspan="7" class="text-center py-3">
+                Carregando saldos...
             </td>
         </tr>
     `;
 
     try{
 
+        const hoje =
+            new Date();
+
+        const ano =
+            hoje.getFullYear();
+
+        const mes =
+            hoje.getMonth() + 1;
+
         const resp =
             await authFetch(
-                `${API}/saldo-add-admin`
+                `${API}/saldo-add-admin?ano=${ano}&mes=${mes}`
             );
 
         const json =
-            await resp.json();
+            await resp.json()
+            .catch(() => ({}));
 
-        const lista =
-            json.items || [];
+        if(!resp.ok || json.ok === false){
 
-        if(!lista.length){
+            throw new Error(
+                json.error ||
+                json.erro ||
+                "Erro ao carregar saldos."
+            );
 
-            tbody.innerHTML = `
-                <tr>
-                    <td colspan="7"
-                        class="text-center py-3">
-                        Nenhum saldo encontrado
-                    </td>
-                </tr>
-            `;
-
-            return;
         }
 
-        tbody.innerHTML =
-            lista.map(item => `
+        saldosADDCache =
+            json.items || [];
 
-                <tr>
-
-                    <td>
-                        ${item.matricula || ""}
-                    </td>
-
-                    <td>
-                        ${item.nome || ""}
-                    </td>
-
-                    <td>
-                        ${item.regional || ""}
-                    </td>
-
-                    <td>
-                        ${item.quantidade_inicial || 0}
-                    </td>
-
-                    <td>
-                        ${item.utilizados || 0}
-                    </td>
-
-                    <td>
-                        <span class="badge bg-success">
-                            ${item.saldo || 0}
-                        </span>
-                    </td>
-
-                    <td>
-
-                        <button
-                            class="btn btn-sm btn-primary"
-
-                            onclick="abrirModalSaldoADD(
-                                '${item.matricula}',
-                                '${item.nome || ""}',
-                                ${item.ano || new Date().getFullYear()},
-                                ${item.mes || (new Date().getMonth()+1)},
-                                ${item.quantidade_inicial || 20}
-                            )"
-                        >
-                            Alterar
-                        </button>
-
-                    </td>
-
-                </tr>
-
-            `).join("");
+        renderizarSaldosADD();
 
     }catch(err){
 
@@ -2638,13 +2694,144 @@ async function carregarSaldosADD(){
 
         tbody.innerHTML = `
             <tr>
-                <td colspan="7"
-                    class="text-center text-danger">
-                    Erro ao carregar saldos
+                <td colspan="7" class="text-center text-danger py-3">
+                    Erro ao carregar saldos: ${escaparHTML(err.message)}
                 </td>
             </tr>
         `;
+
+        setStatus(
+            "❌ Erro ao carregar saldos: " + err.message,
+            "danger"
+        );
+
     }
+
+}
+
+function renderizarSaldosADD(){
+
+    const tbody =
+        document.getElementById("tabelaSaldoADD");
+
+    const termo =
+        normalizarTextoBusca(
+            document.getElementById("pesquisaSaldoADD")?.value || ""
+        );
+
+    let lista =
+        [...saldosADDCache];
+
+    if(termo){
+
+        lista =
+            lista.filter(item => {
+
+                const nome =
+                    normalizarTextoBusca(item.nome || "");
+
+                const matricula =
+                    String(item.matricula || "")
+                    .trim()
+                    .toLowerCase();
+
+                return (
+                    nome.includes(termo) ||
+                    matricula.includes(termo)
+                );
+
+            });
+
+    }
+
+    if(!lista.length){
+
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="7" class="text-center text-muted py-3">
+                    Nenhum saldo encontrado.
+                </td>
+            </tr>
+        `;
+
+        return;
+    }
+
+    tbody.innerHTML =
+        lista.map(item => {
+
+            const matricula =
+                escaparHTML(item.matricula || "");
+
+            const nome =
+                escaparHTML(item.nome || "");
+
+            const regional =
+                escaparHTML(item.regional || "");
+
+            const ano =
+                Number(item.ano || new Date().getFullYear());
+
+            const mes =
+                Number(item.mes || (new Date().getMonth() + 1));
+
+            const inicial =
+                Number(item.quantidade_inicial || 0);
+
+            const utilizados =
+                Number(item.utilizados || 0);
+
+            const saldo =
+                Number(item.saldo || 0);
+
+            let badgeClass =
+                "bg-success";
+
+            if(saldo <= 0){
+                badgeClass = "bg-danger";
+            }
+            else if(saldo <= 5){
+                badgeClass = "bg-warning text-dark";
+            }
+
+            return `
+                <tr>
+
+                    <td>${matricula}</td>
+
+                    <td>${nome}</td>
+
+                    <td>${regional}</td>
+
+                    <td>${inicial}</td>
+
+                    <td>${utilizados}</td>
+
+                    <td>
+                        <span class="badge ${badgeClass}">
+                            ${saldo}
+                        </span>
+                    </td>
+
+                    <td>
+                        <button
+                            class="btn btn-sm btn-primary"
+                            onclick="abrirModalSaldoADD(
+                                '${matricula}',
+                                '${nome}',
+                                ${ano},
+                                ${mes},
+                                ${inicial}
+                            )"
+                        >
+                            Alterar
+                        </button>
+                    </td>
+
+                </tr>
+            `;
+
+        }).join("");
 
 }
 
@@ -2657,32 +2844,24 @@ function(
     quantidade
 ){
 
-    document.getElementById(
-        "saldoMatricula"
-    ).value = matricula;
+    document.getElementById("saldoMatricula").value =
+        matricula;
 
-    document.getElementById(
-        "saldoMatriculaView"
-    ).value =
+    document.getElementById("saldoMatriculaView").value =
         matricula + " - " + nome;
 
-    document.getElementById(
-        "saldoAno"
-    ).value = ano;
+    document.getElementById("saldoAno").value =
+        ano;
 
-    document.getElementById(
-        "saldoMes"
-    ).value = mes;
+    document.getElementById("saldoMes").value =
+        mes;
 
-    document.getElementById(
-        "saldoQuantidade"
-    ).value = quantidade;
+    document.getElementById("saldoQuantidade").value =
+        quantidade;
 
     const modal =
         new bootstrap.Modal(
-            document.getElementById(
-                "modalSaldoADD"
-            )
+            document.getElementById("modalSaldoADD")
         );
 
     modal.show();
@@ -2693,36 +2872,40 @@ window.salvarSaldoADD =
 async function(){
 
     const matricula =
-        document.getElementById(
-            "saldoMatricula"
-        ).value;
+        document.getElementById("saldoMatricula").value;
 
     const ano =
         Number(
-            document.getElementById(
-                "saldoAno"
-            ).value
+            document.getElementById("saldoAno").value
         );
 
     const mes =
         Number(
-            document.getElementById(
-                "saldoMes"
-            ).value
+            document.getElementById("saldoMes").value
         );
 
     const quantidade =
         Number(
-            document.getElementById(
-                "saldoQuantidade"
-            ).value
+            document.getElementById("saldoQuantidade").value
         );
 
     if(!matricula){
 
-        alert(
-            "Matrícula inválida"
-        );
+        alert("Matrícula inválida.");
+
+        return;
+    }
+
+    if(!ano || !mes || mes < 1 || mes > 12){
+
+        alert("Informe ano e mês válidos.");
+
+        return;
+    }
+
+    if(Number.isNaN(quantidade) || quantidade < 0){
+
+        alert("Informe uma quantidade válida.");
 
         return;
     }
@@ -2736,85 +2919,82 @@ async function(){
 
         const resp =
             await authFetch(
-
                 `${API}/alterar-saldo`,
-
                 {
-
                     method:"POST",
-
                     headers:{
-                        "Content-Type":
-                        "application/json"
+                        "Content-Type":"application/json"
                     },
-
                     body:JSON.stringify({
-
                         matricula,
                         ano,
                         mes,
                         quantidade,
-
-                        descricao:
-                        "Alteração manual pelo administrador"
-
+                        descricao:"Alteração manual pelo administrador"
                     })
-
                 }
-
             );
 
         const json =
             await resp.json()
             .catch(() => ({}));
 
-        if(
-            !resp.ok ||
-            json.ok === false
-        ){
+        if(!resp.ok || json.ok === false){
 
             throw new Error(
                 json.error ||
-                "Erro ao atualizar saldo"
+                json.erro ||
+                "Erro ao atualizar saldo."
             );
 
         }
 
-        alert(
-            "✅ Saldo atualizado com sucesso"
-        );
+        alert("✅ Saldo atualizado com sucesso.");
 
-        bootstrap.Modal
-            .getInstance(
-                document.getElementById(
-                    "modalSaldoADD"
-                )
-            )
-            .hide();
+        const modalEl =
+            document.getElementById("modalSaldoADD");
+
+        const modal =
+            bootstrap.Modal.getInstance(modalEl);
+
+        if(modal){
+            modal.hide();
+        }
 
         await carregarSaldosADD();
 
         setStatus(
-            "✅ Saldo atualizado com sucesso",
+            "✅ Saldo atualizado com sucesso.",
             "success"
         );
 
     }catch(err){
 
-    console.error(err);
+        console.error(err);
 
-    alert(
-        "❌ " + err.message
-    );
+        alert(
+            "❌ " + err.message
+        );
 
-    setStatus(
-        "❌ " + err.message,
-        "danger"
-    );
+        setStatus(
+            "❌ " + err.message,
+            "danger"
+        );
 
-}
+    }
 
 };
+
+document.addEventListener("input", function(e){
+
+    if(
+        e.target &&
+        e.target.id === "pesquisaSaldoADD"
+    ){
+        renderizarSaldosADD();
+    }
+
+});
 
   </script>
    <!-- Cloudflare Web Analytics --><script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "ab3e837119ed4133bd616d3b06ef0e25"}'></script><!-- End Cloudflare Web Analytics -->
