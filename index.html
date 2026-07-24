@@ -2374,7 +2374,7 @@ if (!user || !user.matricula) {
     carregarUsuarios();
   }
 };
-    window.adicionarUsuario = async function () {
+window.adicionarUsuario = async function () {
 
   const matricula =
     document.getElementById("novoUserMatricula").value.trim();
@@ -2383,10 +2383,8 @@ if (!user || !user.matricula) {
     document.getElementById("novoUserNome").value.trim();
 
   const cpf =
-  document
-    .getElementById("novoUserCPF")
-    .value
-    .replace(/\D/g, "");
+    document.getElementById("novoUserCPF").value
+      .replace(/\D/g, "");
 
   const senha =
     document.getElementById("novoUserSenha").value.trim();
@@ -2395,28 +2393,37 @@ if (!user || !user.matricula) {
     document.getElementById("novoUserRole").value.trim();
 
   const role =
-    roleTela === "admin" ? "admin" : "user";
+    roleTela === "admin"
+      ? "admin"
+      : "user";
 
   if (!matricula || !nome || !cpf || !senha) {
-  alert("Preencha matrícula, nome, CPF e senha.");
-  return;
-}
+    alert("Preencha matrícula, nome, CPF e senha.");
+    return;
+  }
 
-if (cpf.length !== 11) {
-  alert("CPF deve possuir 11 números.");
-  return;
-}
+  if (cpf.length !== 11) {
+    alert("CPF deve possuir 11 números.");
+    return;
+  }
+
+  try {
+
+    setStatus(
+      "🔄 Adicionando usuário...",
+      "primary"
+    );
 
     const payload = {
-  matricula,
-  nome,
-  cpf,
-  senha,
-  role
-};
+      matricula,
+      nome,
+      cpf,
+      senha,
+      role
+    };
 
     console.log(
-      "Payload enviado para /usuarios:",
+      "Payload enviado:",
       payload
     );
 
@@ -2437,7 +2444,7 @@ if (cpf.length !== 11) {
       .catch(() => ({}));
 
     console.log(
-      "Resposta /usuarios:",
+      "Resposta:",
       json
     );
 
@@ -2449,7 +2456,9 @@ if (cpf.length !== 11) {
       );
     }
 
-    alert("✅ Usuário adicionado com sucesso.");
+    alert(
+      "✅ Usuário adicionado com sucesso."
+    );
 
     limparFormularioUsuario();
 
@@ -2472,9 +2481,7 @@ if (cpf.length !== 11) {
       "❌ Erro ao adicionar usuário: " + err.message,
       "danger"
     );
-
   }
-
 };
 
 window.excluirUsuario = async function (matricula) {
