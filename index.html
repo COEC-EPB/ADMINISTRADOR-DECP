@@ -760,17 +760,27 @@
   </div>
 
   <div class="row g-3">
-    <div class="col-lg-3 col-md-6">
+    <div class="col-lg-2 col-md-6">
       <div class="field-label">Matrícula</div>
       <input type="text" id="novoUserMatricula" class="form-control" placeholder="Digite a matrícula">
     </div>
 
-    <div class="col-lg-4 col-md-6">
+    <div class="col-lg-3 col-md-6">
       <div class="field-label">Nome</div>
       <input type="text" id="novoUserNome" class="form-control" placeholder="Digite o nome">
     </div>
 
     <div class="col-lg-3 col-md-6">
+  <div class="field-label">CPF</div>
+
+  <input
+    type="text"
+    id="novoUserCPF"
+    class="form-control"
+    placeholder="Digite somente números">
+</div>
+
+    <div class="col-lg-2 col-md-6">
       <div class="field-label">Senha</div>
       <input type="password" id="novoUserSenha" class="form-control" placeholder="Digite a senha">
     </div>
@@ -2313,6 +2323,7 @@ if (!user || !user.matricula) {
     window.limparFormularioUsuario = function () {
   document.getElementById("novoUserMatricula").value = "";
   document.getElementById("novoUserNome").value = "";
+  document.getElementById("novoUserCPF").value = "";
   document.getElementById("novoUserSenha").value = "";
   document.getElementById("novoUserRole").value = "usuario";
 
@@ -2371,6 +2382,8 @@ if (!user || !user.matricula) {
   const nome =
     document.getElementById("novoUserNome").value.trim();
 
+      const cpf =8  document.getElementById("novoUserCPF").value9    .replace(/\D/g, "");
+
   const senha =
     document.getElementById("novoUserSenha").value.trim();
 
@@ -2380,24 +2393,23 @@ if (!user || !user.matricula) {
   const role =
     roleTela === "admin" ? "admin" : "user";
 
-  if (!matricula || !nome || !senha) {
-    alert("Preencha matrícula, nome e senha.");
-    return;
-  }
+  if (!matricula || !nome || !cpf || !senha) {
+  alert("Preencha matrícula, nome, CPF e senha.");
+  return;
+}
 
-  try {
-
-    setStatus(
-      "🔄 Adicionando usuário...",
-      "primary"
-    );
+if (cpf.length !== 11) {
+  alert("CPF deve possuir 11 números.");
+  return;
+}
 
     const payload = {
-      matricula,
-      nome,
-      senha,
-      role
-    };
+  matricula,
+  nome,
+  cpf,
+  senha,
+  role
+};
 
     console.log(
       "Payload enviado para /usuarios:",
