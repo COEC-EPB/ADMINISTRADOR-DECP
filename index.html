@@ -848,8 +848,10 @@
     </p>
   </div>
 
-  <div class="d-flex gap-2 flex-wrap">
+  <div class="d-flex gap-2 flex-wrap align-items-end">
 
+  <div>
+    <div class="field-label">Pesquisar</div>
     <input
       type="text"
       id="pesquisaSaldoADD"
@@ -857,15 +859,39 @@
       placeholder="Pesquisar nome ou matrícula..."
       style="min-width:280px;"
     >
-
-    <button
-      class="btn btn-outline-primary btn-sm"
-      onclick="carregarSaldosADD()"
-    >
-      Atualizar lista
-    </button>
-
   </div>
+
+  <div>
+    <div class="field-label">Polo</div>
+    <select
+      id="filtroPoloSaldoADD"
+      class="form-select"
+      style="min-width:220px;"
+    >
+      <option value="">Todos</option>
+      <option value="João Pessoa">João Pessoa</option>
+      <option value="Itabaiana">Itabaiana</option>
+      <option value="Mamanguape">Mamanguape</option>
+      <option value="Borborema">Borborema</option>
+      <option value="Campina Grande">Campina Grande</option>
+      <option value="Monteiro">Monteiro</option>
+      <option value="Guarabira">Guarabira</option>
+      <option value="Esperança">Esperança</option>
+      <option value="Itaporanga">Itaporanga</option>
+      <option value="Sousa">Sousa</option>
+      <option value="Patos">Patos</option>
+      <option value="Catolé do Rocha">Catolé do Rocha</option>
+    </select>
+  </div>
+
+  <button
+    class="btn btn-outline-primary btn-sm"
+    onclick="carregarSaldosADD()"
+  >
+    Atualizar lista
+  </button>
+
+</div>
 
 </div>
 
@@ -879,6 +905,7 @@
           <th>Matrícula</th>
           <th>Nome</th>
           <th>Regional</th>
+          <th>Polo</th>
           <th>Inicial</th>
           <th>Utilizados</th>
           <th>Saldo</th>
@@ -890,7 +917,7 @@
       <tbody id="tabelaSaldoADD">
 
         <tr>
-          <td colspan="7" class="text-center text-muted py-3">
+          <td colspan="8" class="text-center text-muted py-3">
             Clique em "Atualizar lista"
           </td>
         </tr>
@@ -2670,7 +2697,7 @@ async function carregarSaldosADD(){
 
     tbody.innerHTML = `
         <tr>
-            <td colspan="7" class="text-center py-3">
+            <td colspan="8" class="text-center py-3">
                 Carregando saldos...
             </td>
         </tr>
@@ -2678,18 +2705,27 @@ async function carregarSaldosADD(){
 
     try{
 
-        const hoje =
-            new Date();
+        const hoje = new Date();
 
-        const ano =
-            hoje.getFullYear();
+        const ano = hoje.getFullYear();
 
-        const mes =
-            hoje.getMonth() + 1;
+        const mes = hoje.getMonth() + 1;
+
+        const polo =
+            document.getElementById("filtroPoloSaldoADD")?.value || "";
+
+        const params = new URLSearchParams();
+
+        params.set("ano", String(ano));
+        params.set("mes", String(mes));
+
+        if(polo){
+            params.set("polo", polo);
+        }
 
         const resp =
             await authFetch(
-                `${API}/saldo-add-admin?ano=${ano}&mes=${mes}`
+                `${API}/saldo-add-admin?${params.toString()}`
             );
 
         const json =
@@ -2717,7 +2753,7 @@ async function carregarSaldosADD(){
 
         tbody.innerHTML = `
             <tr>
-                <td colspan="7" class="text-center text-danger py-3">
+                <td colspan="8" class="text-center text-danger py-3">
                     Erro ao carregar saldos: ${escaparHTML(err.message)}
                 </td>
             </tr>
@@ -2740,6 +2776,11 @@ function renderizarSaldosADD(){
     const termo =
         normalizarTextoBusca(
             document.getElementById("pesquisaSaldoADD")?.value || ""
+        );
+
+    const poloFiltro =
+        normalizarTextoBusca(
+            document.getElementById("filtroPoloSaldoADD")?.value || ""
         );
 
     let lista =
@@ -2767,11 +2808,25 @@ function renderizarSaldosADD(){
 
     }
 
+    if(poloFiltro){
+
+        lista =
+            lista.filter(item => {
+
+                const polo =
+                    normalizarTextoBusca(item.polo || "");
+
+                return polo === poloFiltro;
+
+            });
+
+    }
+
     if(!lista.length){
 
         tbody.innerHTML = `
             <tr>
-                <td colspan="7" class="text-center text-muted py-3">
+                <td colspan="8" class="text-center text-muted py-3">
                     Nenhum saldo encontrado.
                 </td>
             </tr>
@@ -2791,6 +2846,9 @@ function renderizarSaldosADD(){
 
             const regional =
                 escaparHTML(item.regional || "");
+
+            const polo =
+                escaparHTML(item.polo || "");
 
             const ano =
                 Number(item.ano || new Date().getFullYear());
@@ -2825,6 +2883,8 @@ function renderizarSaldosADD(){
                     <td>${nome}</td>
 
                     <td>${regional}</td>
+
+                    <td>${polo}</td>
 
                     <td>${inicial}</td>
 
@@ -3013,6 +3073,17 @@ document.addEventListener("input", function(e){
     if(
         e.target &&
         e.target.id === "pesquisaSaldoADD"
+    ){
+        renderizarSaldosADD();
+    }
+
+});
+
+document.addEventListener("change", function(e){
+
+    if(
+        e.target &&
+        e.target.id === "filtroPoloSaldoADD"
     ){
         renderizarSaldosADD();
     }
