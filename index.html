@@ -791,6 +791,26 @@
   </select>
 </div>
 
+    <div class="col-lg-3 col-md-6">
+  <div class="field-label">Polo</div>
+
+  <select id="novoUserPolo" class="form-select">
+    <option value="">Selecione</option>
+    <option value="João Pessoa">João Pessoa</option>
+    <option value="Itabaiana">Itabaiana</option>
+    <option value="Mamanguape">Mamanguape</option>
+    <option value="Borborema">Borborema</option>
+    <option value="Campina Grande">Campina Grande</option>
+    <option value="Monteiro">Monteiro</option>
+    <option value="Guarabira">Guarabira</option>
+    <option value="Esperança">Esperança</option>
+    <option value="Itaporanga">Itaporanga</option>
+    <option value="Sousa">Sousa</option>
+    <option value="Patos">Patos</option>
+    <option value="Catolé do Rocha">Catolé do Rocha</option>
+  </select>
+</div>
+
     <div class="col-lg-2 col-md-6">
       <div class="field-label">Senha</div>
       <input type="password" id="novoUserSenha" class="form-control" placeholder="Digite a senha">
@@ -2362,6 +2382,7 @@ if (!user || !user.matricula) {
   document.getElementById("novoUserMatricula").value = "";
   document.getElementById("novoUserNome").value = "";
   document.getElementById("novoUserCPF").value = "";
+  document.getElementById("novoUserPolo").value = "";
   document.getElementById("novoUserRegional").value = "";
   document.getElementById("novoUserSenha").value = "";
   document.getElementById("novoUserRole").value = "usuario";
@@ -2424,8 +2445,14 @@ window.adicionarUsuario = async function () {
   const cpf =
     document.getElementById("novoUserCPF").value
       .replace(/\D/g, "");
+ 
   const regional =
   document.getElementById("novoUserRegional")
+  .value
+  .trim();
+
+const polo =
+  document.getElementById("novoUserPolo")
   .value
   .trim();
 
@@ -2440,13 +2467,20 @@ window.adicionarUsuario = async function () {
       ? "admin"
       : "user";
 
-  if (!matricula || !nome || !cpf || !senha || !regional) {
+  if (
+    !matricula ||
+    !nome ||
+    !cpf ||
+    !regional ||
+    !polo ||
+    !senha
+) {
 
-  alert(
-    "Preencha matrícula, nome, CPF, regional e senha."
-  );
+    alert(
+      "Preencha matrícula, nome, CPF, regional, polo e senha."
+    );
 
-  return;
+    return;
 }
 
   if (cpf.length !== 11) {
@@ -2466,6 +2500,7 @@ window.adicionarUsuario = async function () {
   nome,
   cpf,
   regional,
+  polo,
   senha,
   role
 };
