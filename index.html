@@ -828,7 +828,13 @@
   <div class="divider"></div>
 
   <div class="d-flex gap-2 flex-wrap">
-    <button class="btn btn-success" onclick="adicionarUsuario()">➕ Adicionar usuário</button>
+    <button
+  id="btnSalvarUsuario"
+  class="btn btn-success"
+  onclick="salvarUsuario()">
+
+  💾 Salvar usuário
+</button>
     <button class="btn btn-outline-secondary" onclick="limparFormularioUsuario()">♻️ Limpar</button>
   </div>
 
@@ -1223,6 +1229,7 @@
     if (!isLogged()) {
   logout();
 }
+    let usuarioEmEdicao = null;
 
 const user = getUser();
 
@@ -2326,6 +2333,142 @@ if (!user || !user.matricula) {
   }
 };
 
+    window.editarUsuario = function(matricula){
+
+  const usuario =
+    usuariosCache.find(
+      x => String(x.matricula) === String(matricula)
+    );
+
+  if(!usuario){
+    alert("Usuário não encontrado.");
+    return;
+  }
+
+  usuarioEmEdicao = matricula;
+
+  document.getElementById("novoUserMatricula").value =
+    usuario.matricula || "";
+
+  document.getElementById("novoUserNome").value =
+    usuario.nome || "";
+
+  document.getElementById("novoUserCPF").value =
+    usuario.cpf || "";
+
+  document.getElementById("novoUserRegional").value =
+    usuario.regional || "";
+
+  document.getElementById("novoUserPolo").value =
+    usuario.polo || "";
+
+  document.getElementById("novoUserRole").value =
+    usuario.role === "admin"
+      ? "admin"
+      : "usuario";
+
+  document.getElementById("novoUserSenha").value = "";
+
+  window.scrollTo({
+    top: 0,
+    behavior: "smooth"
+  });
+
+  setStatus(
+    "✏️ Editando usuário " + matricula,
+    "warning"
+  );
+
+};
+
+    window.salvarUsuario = async function(){
+
+  if(usuarioEmEdicao){
+    return atualizarUsuario();
+  }
+
+  return adicionarUsuario();
+
+};
+
+    window.atualizarUsuario = async function(){
+
+  const matricula =
+    document.getElementById("novoUserMatricula").value.trim();
+
+  const nome =
+    document.getElementById("novoUserNome").value.trim();
+
+  const cpf =
+    document.getElementById("novoUserCPF").value
+      .replace(/\D/g,"");
+
+  const regional =
+    document.getElementById("novoUserRegional").value;
+
+  const polo =
+    document.getElementById("novoUserPolo").value;
+
+  const role =
+    document.getElementById("novoUserRole").value === "admin"
+      ? "admin"
+      : "user";
+
+  try{
+
+    const resp =
+      await authFetch(
+        `${API}/usuarios/${encodeURIComponent(matricula)}`,
+        {
+          method:"PUT",
+          headers:{
+            "Content-Type":"application/json"
+          },
+          body:JSON.stringify({
+            nome,
+            cpf,
+            regional,
+            polo,
+            role
+          })
+        }
+      );
+
+    const json =
+      await resp.json()
+      .catch(()=>({}));
+
+    if(!resp.ok || json.ok === false){
+
+      throw new Error(
+        json.error ||
+        "Erro ao atualizar usuário."
+      );
+
+    }
+
+    alert(
+      "✅ Usuário atualizado com sucesso."
+    );
+
+    usuarioEmEdicao = null;
+
+    limparFormularioUsuario();
+
+    await carregarUsuarios();
+
+  }catch(err){
+
+    console.error(err);
+
+    alert(
+      "❌ " + err.message
+    );
+
+  }
+
+};
+
     function renderUsuariosFiltrados() {
   const tbody = document.getElementById("tabelaUsuarios");
   const termo = normalizarTextoBusca(
@@ -2361,20 +2504,29 @@ if (!user || !user.matricula) {
       <td>${Number(item.ativo) === 1 ? "Sim" : "Não"}</td>
       <td>${escaparHTML(item.criado_em || "")}</td>
       <td class="d-flex gap-2 flex-wrap">
-        <button
-          class="btn btn-sm btn-outline-${Number(item.ativo) === 1 ? "warning" : "success"}"
-          onclick="toggleUsuarioAtivo('${escaparHTML(item.matricula)}', ${Number(item.ativo) === 1 ? 0 : 1})"
-        >
-          ${Number(item.ativo) === 1 ? "Desativar" : "Ativar"}
-        </button>
 
-        <button
-          class="btn btn-sm btn-outline-danger"
-          onclick="excluirUsuario('${escaparHTML(item.matricula)}')"
-        >
-          Excluir
-        </button>
-      </td>
+  <button
+    class="btn btn-sm btn-outline-primary"
+    onclick="editarUsuario('${escaparHTML(item.matricula)}')"
+  >
+    Editar
+  </button>
+
+  <button
+    class="btn btn-sm btn-outline-${Number(item.ativo) === 1 ? "warning" : "success"}"
+    onclick="toggleUsuarioAtivo('${escaparHTML(item.matricula)}', ${Number(item.ativo) === 1 ? 0 : 1})"
+  >
+    ${Number(item.ativo) === 1 ? "Desativar" : "Ativar"}
+  </button>
+
+  <button
+    class="btn btn-sm btn-outline-danger"
+    onclick="excluirUsuario('${escaparHTML(item.matricula)}')"
+  >
+    Excluir
+  </button>
+
+</td>
     </tr>
   `).join("");
 }
@@ -2391,6 +2543,15 @@ if (!user || !user.matricula) {
   if (campoBusca) {
     campoBusca.value = "";
   }
+      usuarioEmEdicao = null;
+
+const btn =
+  document.getElementById("btnSalvarUsuario");
+
+if(btn){
+  btn.innerText =
+    "💾 Salvar usuário";
+}
 
   renderUsuariosFiltrados();
 };
