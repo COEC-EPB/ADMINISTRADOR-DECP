@@ -2499,39 +2499,60 @@ if (!user || !user.matricula) {
   }
 
   tbody.innerHTML = lista.map(item => `
-    <tr>
-      <td>${escaparHTML(item.matricula)}</td>
-      <td>${escaparHTML(item.nome)}</td>
-      <td>${escaparHTML(item.role)}</td>
-      <td>${Number(item.ativo) === 1 ? "Sim" : "Não"}</td>
-      <td>${escaparHTML(item.criado_em || "")}</td>
-      <td class="d-flex gap-2 flex-wrap">
+<tr>
 
-  <button
-    class="btn btn-sm btn-outline-primary"
-    onclick="editarUsuario('${escaparHTML(item.matricula)}')"
-  >
-    Editar
-  </button>
+  <td>${escaparHTML(item.matricula || "")}</td>
 
-  <button
-    class="btn btn-sm btn-outline-${Number(item.ativo) === 1 ? "warning" : "success"}"
-    onclick="toggleUsuarioAtivo('${escaparHTML(item.matricula)}', ${Number(item.ativo) === 1 ? 0 : 1})"
-  >
-    ${Number(item.ativo) === 1 ? "Desativar" : "Ativar"}
-  </button>
+  <td>${escaparHTML(item.nome || "")}</td>
 
-  <button
-    class="btn btn-sm btn-outline-danger"
-    onclick="excluirUsuario('${escaparHTML(item.matricula)}')"
-  >
-    Excluir
-  </button>
+  <td>${escaparHTML(item.regional || "")}</td>
 
-</td>
-    </tr>
-  `).join("");
-}
+  <td>${escaparHTML(item.polo || "")}</td>
+
+  <td>${escaparHTML(item.role || "")}</td>
+
+  <td>
+    ${Number(item.ativo) === 1 ? "Sim" : "Não"}
+  </td>
+
+  <td>
+    ${escaparHTML(item.criado_em || "")}
+  </td>
+
+  <td class="d-flex gap-2 flex-wrap">
+
+    <button
+      class="btn btn-sm btn-outline-primary"
+      onclick="editarUsuario('${escaparHTML(item.matricula)}')"
+    >
+      Editar
+    </button>
+
+    <button
+      class="btn btn-sm btn-outline-${Number(item.ativo) === 1 ? "warning" : "success"}"
+      onclick="toggleUsuarioAtivo(
+        '${escaparHTML(item.matricula)}',
+        ${Number(item.ativo) === 1 ? 0 : 1}
+      )"
+    >
+      ${Number(item.ativo) === 1
+        ? "Desativar"
+        : "Ativar"}
+    </button>
+
+    <button
+      class="btn btn-sm btn-outline-danger"
+      onclick="excluirUsuario(
+        '${escaparHTML(item.matricula)}'
+      )"
+    >
+      Excluir
+    </button>
+
+  </td>
+
+</tr>
+`).join("");
     window.limparFormularioUsuario = function () {
   document.getElementById("novoUserMatricula").value = "";
   document.getElementById("novoUserNome").value = "";
