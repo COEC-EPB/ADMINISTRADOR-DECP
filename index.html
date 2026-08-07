@@ -759,7 +759,7 @@
     <button class="btn btn-outline-primary btn-sm" onclick="carregarUsuarios()">Atualizar lista</button>
   </div>
 
-  <div class="row g-3">
+  <div class="row g-2">
     <div class="col-lg-2 col-md-6">
       <div class="field-label">Matrícula</div>
       <input type="text" id="novoUserMatricula" class="form-control" placeholder="Digite a matrícula">
@@ -778,6 +778,17 @@
     id="novoUserCPF"
     class="form-control"
     placeholder="Digite somente números">
+</div>
+
+    <div class="col-lg-2 col-md-6">
+  <div class="field-label">Regional</div>
+
+  <select id="novoUserRegional" class="form-select">
+    <option value="">Selecione</option>
+    <option value="LESTE">LESTE</option>
+    <option value="CENTRO">CENTRO</option>
+    <option value="OESTE">OESTE</option>
+  </select>
 </div>
 
     <div class="col-lg-2 col-md-6">
@@ -803,7 +814,7 @@
 
   <div class="divider"></div>
 
-  <div class="row g-3">
+  <div class="row g-2">
     <div class="col-lg-6 col-md-8">
       <div class="field-label">Pesquisar usuário</div>
       <input
@@ -2351,6 +2362,7 @@ if (!user || !user.matricula) {
   document.getElementById("novoUserMatricula").value = "";
   document.getElementById("novoUserNome").value = "";
   document.getElementById("novoUserCPF").value = "";
+  document.getElementById("novoUserRegional").value = "";
   document.getElementById("novoUserSenha").value = "";
   document.getElementById("novoUserRole").value = "usuario";
 
@@ -2412,6 +2424,10 @@ window.adicionarUsuario = async function () {
   const cpf =
     document.getElementById("novoUserCPF").value
       .replace(/\D/g, "");
+  const regional =
+  document.getElementById("novoUserRegional")
+  .value
+  .trim();
 
   const senha =
     document.getElementById("novoUserSenha").value.trim();
@@ -2424,10 +2440,14 @@ window.adicionarUsuario = async function () {
       ? "admin"
       : "user";
 
-  if (!matricula || !nome || !cpf || !senha) {
-    alert("Preencha matrícula, nome, CPF e senha.");
-    return;
-  }
+  if (!matricula || !nome || !cpf || !senha || !regional) {
+
+  alert(
+    "Preencha matrícula, nome, CPF, regional e senha."
+  );
+
+  return;
+}
 
   if (cpf.length !== 11) {
     alert("CPF deve possuir 11 números.");
@@ -2442,12 +2462,13 @@ window.adicionarUsuario = async function () {
     );
 
     const payload = {
-      matricula,
-      nome,
-      cpf,
-      senha,
-      role
-    };
+  matricula,
+  nome,
+  cpf,
+  regional,
+  senha,
+  role
+};
 
     console.log(
       "Payload enviado:",
