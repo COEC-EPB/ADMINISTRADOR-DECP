@@ -1198,6 +1198,179 @@
 
       </div>
 
+      <div
+  class="modal fade"
+  id="modalAdicionarSaldoADD"
+  tabindex="-1"
+>
+  <div class="modal-dialog">
+
+    <div class="modal-content">
+
+      <div class="modal-header">
+
+        <h5 class="modal-title">
+          ➕ Adicionar saldo ao Banco ADD
+        </h5>
+
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="modal"
+        ></button>
+
+      </div>
+
+      <div class="modal-body">
+
+        <input
+          type="hidden"
+          id="adicionarSaldoMatricula"
+        >
+
+        <input
+          type="hidden"
+          id="adicionarSaldoAno"
+        >
+
+        <input
+          type="hidden"
+          id="adicionarSaldoMes"
+        >
+
+        <div class="mb-3">
+
+          <label class="form-label">
+            Colaborador
+          </label>
+
+          <input
+            class="form-control"
+            id="adicionarSaldoMatriculaView"
+            disabled
+          >
+
+        </div>
+
+        <div class="row g-3 mb-3">
+
+          <div class="col-md-4">
+
+            <label class="form-label">
+              Inicial
+            </label>
+
+            <input
+              type="number"
+              class="form-control"
+              id="adicionarSaldoInicial"
+              disabled
+            >
+
+          </div>
+
+          <div class="col-md-4">
+
+            <label class="form-label">
+              Utilizados
+            </label>
+
+            <input
+              type="number"
+              class="form-control"
+              id="adicionarSaldoUtilizados"
+              disabled
+            >
+
+          </div>
+
+          <div class="col-md-4">
+
+            <label class="form-label">
+              Saldo atual
+            </label>
+
+            <input
+              type="number"
+              class="form-control"
+              id="adicionarSaldoAtual"
+              disabled
+            >
+
+          </div>
+
+        </div>
+
+        <div class="mb-3">
+
+          <label class="form-label">
+            Quantidade a adicionar
+          </label>
+
+          <input
+            type="number"
+            min="1"
+            step="1"
+            class="form-control"
+            id="adicionarSaldoQuantidade"
+            placeholder="Ex.: 3"
+          >
+
+          <div class="form-text">
+            Essa quantidade será somada somente ao saldo disponível. O valor inicial e os utilizados não serão alterados.
+          </div>
+
+        </div>
+
+        <div class="mb-3">
+
+          <label class="form-label">
+            Justificativa
+          </label>
+
+          <textarea
+            class="form-control"
+            id="adicionarSaldoDescricao"
+            rows="3"
+            placeholder="Informe o motivo da adição de saldo..."
+          ></textarea>
+
+        </div>
+
+        <div
+          id="previsaoNovoSaldo"
+          class="alert alert-success mb-0"
+          style="display:none;"
+        ></div>
+
+      </div>
+
+      <div class="modal-footer">
+
+        <button
+          type="button"
+          class="btn btn-secondary"
+          data-bs-dismiss="modal"
+        >
+          Cancelar
+        </button>
+
+        <button
+          type="button"
+          class="btn btn-success"
+          id="btnConfirmarAdicionarSaldo"
+          onclick="adicionarSaldoADD()"
+        >
+          ➕ Adicionar saldo
+        </button>
+
+      </div>
+
+    </div>
+
+  </div>
+</div>
+
       <div class="modal-footer">
 
         <button
@@ -3138,19 +3311,42 @@ function renderizarSaldosADD(){
                     </td>
 
                     <td>
-                        <button
-                            class="btn btn-sm btn-primary"
-                            onclick="abrirModalSaldoADD(
-                                '${matricula}',
-                                '${nome}',
-                                ${ano},
-                                ${mes},
-                                ${inicial}
-                            )"
-                        >
-                            Alterar
-                        </button>
-                    </td>
+  <div class="d-flex gap-2 flex-wrap">
+
+    <button
+      type="button"
+      class="btn btn-sm btn-outline-primary"
+      onclick="abrirModalSaldoADD(
+        '${matricula}',
+        '${nome}',
+        ${ano},
+        ${mes},
+        ${inicial}
+      )"
+      title="Corrigir o valor inicial"
+    >
+      ✏️ Alterar inicial
+    </button>
+
+    <button
+      type="button"
+      class="btn btn-sm btn-success"
+      onclick="abrirModalAdicionarSaldoADD(
+        '${matricula}',
+        '${nome}',
+        ${ano},
+        ${mes},
+        ${inicial},
+        ${utilizados},
+        ${saldo}
+      )"
+      title="Adicionar ao saldo disponível"
+    >
+      ➕ Adicionar saldo
+    </button>
+
+  </div>
+</td>
 
                 </tr>
             `;
@@ -3189,6 +3385,76 @@ function(
         );
 
     modal.show();
+
+};
+    window.abrirModalAdicionarSaldoADD = function(
+  matricula,
+  nome,
+  ano,
+  mes,
+  inicial,
+  utilizados,
+  saldoAtual
+){
+
+  document.getElementById(
+    "adicionarSaldoMatricula"
+  ).value = matricula;
+
+  document.getElementById(
+    "adicionarSaldoMatriculaView"
+  ).value = matricula + " - " + nome;
+
+  document.getElementById(
+    "adicionarSaldoAno"
+  ).value = ano;
+
+  document.getElementById(
+    "adicionarSaldoMes"
+  ).value = mes;
+
+  document.getElementById(
+    "adicionarSaldoInicial"
+  ).value = inicial;
+
+  document.getElementById(
+    "adicionarSaldoUtilizados"
+  ).value = utilizados;
+
+  document.getElementById(
+    "adicionarSaldoAtual"
+  ).value = saldoAtual;
+
+  document.getElementById(
+    "adicionarSaldoQuantidade"
+  ).value = "";
+
+  document.getElementById(
+    "adicionarSaldoDescricao"
+  ).value = "";
+
+  const previsao =
+    document.getElementById(
+      "previsaoNovoSaldo"
+    );
+
+  previsao.style.display = "none";
+  previsao.innerHTML = "";
+
+  const modal =
+    new bootstrap.Modal(
+      document.getElementById(
+        "modalAdicionarSaldoADD"
+      )
+    );
+
+  modal.show();
+
+  setTimeout(() => {
+    document.getElementById(
+      "adicionarSaldoQuantidade"
+    )?.focus();
+  }, 300);
 
 };
 
@@ -3317,6 +3583,50 @@ document.addEventListener("input", function(e){
     ){
         renderizarSaldosADD();
     }
+
+});
+
+    document.getElementById(
+  "adicionarSaldoQuantidade"
+)?.addEventListener("input", function(){
+
+  const saldoAtual =
+    Number(
+      document.getElementById(
+        "adicionarSaldoAtual"
+      ).value || 0
+    );
+
+  const quantidade =
+    Number(this.value || 0);
+
+  const previsao =
+    document.getElementById(
+      "previsaoNovoSaldo"
+    );
+
+  if(
+    !Number.isFinite(quantidade) ||
+    quantidade <= 0
+  ){
+
+    previsao.style.display = "none";
+    previsao.innerHTML = "";
+    return;
+
+  }
+
+  const novoSaldo =
+    saldoAtual + quantidade;
+
+  previsao.innerHTML = `
+    <strong>Previsão:</strong><br>
+    Saldo atual: ${saldoAtual}<br>
+    Adição: +${quantidade}<br>
+    <strong>Novo saldo: ${novoSaldo}</strong>
+  `;
+
+  previsao.style.display = "block";
 
 });
 
