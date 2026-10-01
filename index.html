@@ -3562,9 +3562,25 @@ function renderizarSaldosADD(){
         ${utilizados},
         ${saldo}
       )"
-      title="Adicionar ao saldo disponível"
+      title="Adicionar crédito ao saldo disponível"
     >
       ➕ Adicionar saldo
+    </button>
+
+    <button
+      type="button"
+      class="btn btn-sm btn-warning"
+      onclick="transformarSaldoEmInicial(
+        '${matricula}',
+        '${nome}',
+        ${ano},
+        ${mes},
+        ${saldo},
+        ${utilizados}
+      )"
+      title="Iniciar um novo ciclo usando o saldo atual"
+    >
+      🔄 Saldo → Inicial
     </button>
 
   </div>
@@ -3702,6 +3718,238 @@ function(
   }, 300);
 
 };
+
+    window.transformarSaldoEmInicial = async function(
+  matricula,
+  nome,
+  ano,
+  mes,
+  saldoAtual,
+  utilizados
+){
+
+  if(!matricula){
+    alert("Matrícula inválida.");
+    return;
+  }
+
+  const mensagem =
+    `Transformar o saldo atual em saldo inicial?\n\n` +
+    `Colaborador: ${nome}\n` +
+    `Matrícula: ${matricula}\n` +
+    `Saldo atual: ${saldoAtual}\n` +
+    `Utilizados: ${utilizados}\n\n` +
+    `Depois da operação:\n` +
+    `Inicial: ${saldoAtual}\n` +
+    `Utilizados: 0\n` +
+    `Saldo: ${saldoAtual}\n\n` +
+    `Essa operação inicia um novo ciclo semanal.`;
+
+  const confirmar = confirm(mensagem);
+
+  if(!confirmar){
+    return;
+  }
+
+  try{
+
+    setStatus(
+      "🔄 Transformando saldo em inicial...",
+      "primary"
+    );
+
+    const resp = await authFetch(
+      `${API}/saldo-para-inicial`,
+      {
+        method:"POST",
+        headers:{
+          "Content-Type":"application/json"
+        },
+        body:JSON.stringify({
+          matricula,
+          ano,
+          mes,
+          descricao:
+            "Transformação manual do saldo em inicial pelo administrador"
+        })
+      }
+    );
+
+    const json = await resp.json()
+      .catch(() => ({}));
+
+    if(!resp.ok || json.ok === false){
+
+      throw new Error(
+        json.error ||
+        json.erro ||
+        "Erro ao transformar saldo em inicial."
+      );
+
+    }
+
+    alert(
+      `✅ Novo ciclo iniciado com sucesso.\n\n` +
+      `Inicial: ${json.saldo?.quantidade_inicial ?? saldoAtual}\n` +
+      `Utilizados: ${json.saldo?.utilizados ?? 0}\n` +
+      `Saldo: ${json.saldo?.saldo ?? saldoAtual}`
+    );
+
+    await carregarSaldosADD();
+
+    setStatus(
+      "✅ Saldo transformado em inicial com sucesso.",
+      "success"
+    );
+
+  }catch(err){
+
+    console.error(
+      "Erro ao transformar saldo em inicial:",
+      err
+    );
+
+    alert("❌ " + err.message);
+
+    setStatus(
+      "❌ Erro ao transformar saldo em inicial: " + err.message,
+      "danger"
+    );
+
+  }
+
+};
+    async function executarFechamentoSemanalADD(
+  env,
+  dataExecucao = new Date()
+){
+
+  const ano =
+    dataExecucao.getUTCFullYear();
+
+  const mes =
+    dataExecucao.getUTCMonth() + 1;
+
+  const dataReferencia =
+    dataExecucao.toISOString().slice(0, 10);
+
+  /*
+    Essa verificação evita executar o fechamento
+    duas vezes na mesma sexta-feira.
+  */
+
+  const jaExecutado = await env.DB.prepare(`
+    SELECT id
+    FROM add_movimentacao
+    WHERE tipo = 'FECHAMENTO_SEMANAL'
+      AND origem = 'cron-sexta'
+      AND descricao LIKE ?
+    LIMIT 1
+  `)
+  .bind(`%${dataReferencia}%`)
+  .first();
+
+  if(jaExecutado){
+
+    return {
+      ok:true,
+      ignorado:true,
+      motivo:
+        "Fechamento semanal já executado nesta data.",
+      dataReferencia
+    };
+
+  }
+
+  const resultado = await env.DB.prepare(`
+    SELECT
+      matricula,
+      quantidade_inicial,
+      utilizados,
+      saldo
+    FROM add_saldo
+    WHERE ano = ?
+      AND mes = ?
+    ORDER BY matricula
+  `)
+  .bind(
+    ano,
+    mes
+  )
+  .all();
+
+  const saldos =
+    resultado.results || [];
+
+  let atualizados = 0;
+
+  for(const item of saldos){
+
+    const matricula =
+      String(item.matricula || "").trim();
+
+    if(!matricula){
+      continue;
+    }
+
+    const inicialAnterior =
+      Number(item.quantidade_inicial || 0);
+
+    const utilizadosAnteriores =
+      Number(item.utilizados || 0);
+
+    const saldoAtual =
+      Number(item.saldo || 0);
+
+    await env.DB.prepare(`
+      UPDATE add_saldo
+      SET quantidade_inicial = ?,
+          utilizados = 0,
+          saldo = ?,
+          atualizado_em = ?
+      WHERE matricula = ?
+        AND ano = ?
+        AND mes = ?
+    `)
+    .bind(
+      saldoAtual,
+      saldoAtual,
+      new Date().toISOString(),
+      matricula,
+      ano,
+      mes
+    )
+    .run();
+
+    await addMovimentacao(env, {
+      matricula,
+      ano,
+      mes,
+      tipo:"FECHAMENTO_SEMANAL",
+      quantidade:0,
+      origem:"cron-sexta",
+      referencia_id:null,
+      descricao:
+        `Fechamento semanal ${dataReferencia}. ` +
+        `Inicial anterior: ${inicialAnterior}. ` +
+        `Utilizados anteriores: ${utilizadosAnteriores}. ` +
+        `Novo inicial: ${saldoAtual}.`,
+      criado_por:"sistema"
+    });
+
+    atualizados++;
+  }
+
+  return {
+    ok:true,
+    ignorado:false,
+    dataReferencia,
+    ano,
+    mes,
+    atualizados
+  };
+
+}
 
 window.salvarSaldoADD =
 async function(){
