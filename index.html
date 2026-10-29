@@ -3260,149 +3260,196 @@ document.addEventListener("input", function (e) {
 
 let saldosADDCache = [];
 
-window.togglePainelSaldo = async function(){
+let saldosADDCarregados = false;
+let saldosADDCarregando = false;
+let ultimaChaveConsultaSaldo = "";
+let ultimaCargaSaldoEm = 0;
+let controllerSaldoADD = null;
 
-    const painel =
-        document.getElementById("painelSaldo");
+const TEMPO_CACHE_SALDO_ADD = 60 * 1000; // 1 minuto
 
-    const botao =
-        document.getElementById("btnToggleSaldo");
+window.togglePainelSaldo = async function () {
+  const painel = document.getElementById("painelSaldo");
+  const botao = document.getElementById("btnToggleSaldo");
 
-    const painelBloqueio =
-        document.getElementById("painelBloqueio");
+  const painelBloqueio = document.getElementById("painelBloqueio");
+  const botaoBloqueio = document.getElementById("btnToggleBloqueio");
 
-    const botaoBloqueio =
-        document.getElementById("btnToggleBloqueio");
+  const painelUsuarios = document.getElementById("painelUsuarios");
+  const botaoUsuarios = document.getElementById("btnToggleUsuarios");
 
-    const painelUsuarios =
-        document.getElementById("painelUsuarios");
+  const aberto = painel.classList.contains("show");
 
-    const botaoUsuarios =
-        document.getElementById("btnToggleUsuarios");
+  if (aberto) {
+    painel.classList.remove("show");
+    botao.classList.remove("ativo");
+    botao.innerText = "💰 Banco ADD";
+    return;
+  }
 
-    const aberto =
-        painel.classList.contains("show");
+  if (painelBloqueio) {
+    painelBloqueio.classList.remove("show");
+  }
 
-    if(aberto){
+  if (botaoBloqueio) {
+    botaoBloqueio.classList.remove("ativo");
+    botaoBloqueio.innerText = "🔒 Mostrar bloqueio de colaborador";
+  }
 
-        painel.classList.remove("show");
+  if (painelUsuarios) {
+    painelUsuarios.classList.remove("show");
+  }
 
-        botao.classList.remove("ativo");
+  if (botaoUsuarios) {
+    botaoUsuarios.classList.remove("ativo");
+    botaoUsuarios.innerText = "👥 Mostrar usuários";
+  }
 
-        botao.innerText =
-            "💰 Banco ADD";
+  // Abre imediatamente, sem esperar a API
+  painel.classList.add("show");
+  botao.classList.add("ativo");
+  botao.innerText = "💰 Ocultar Banco ADD";
 
-        return;
-    }
+  // Se já houver dados, mostra imediatamente
+  if (saldosADDCache.length) {
+    renderizarSaldosADD();
+  }
 
-    if(painelBloqueio){
-        painelBloqueio.classList.remove("show");
-    }
-
-    if(botaoBloqueio){
-        botaoBloqueio.classList.remove("ativo");
-        botaoBloqueio.innerText =
-            "🔒 Mostrar bloqueio de colaborador";
-    }
-
-    if(painelUsuarios){
-        painelUsuarios.classList.remove("show");
-    }
-
-    if(botaoUsuarios){
-        botaoUsuarios.classList.remove("ativo");
-        botaoUsuarios.innerText =
-            "👥 Mostrar usuários";
-    }
-
-    painel.classList.add("show");
-
-    botao.classList.add("ativo");
-
-    botao.innerText =
-        "💰 Ocultar Banco ADD";
-
-    await carregarSaldosADD();
-
+  // A função controla cache e carregamento duplicado
+  carregarSaldosADD();
 };
 
-async function carregarSaldosADD(){
+window.carregarSaldosADD = async function (forcarAtualizacao = false) {
+  const tbody = document.getElementById("tabelaSaldoADD");
 
-    const tbody =
-        document.getElementById("tabelaSaldoADD");
+  if (!tbody) {
+    console.error("Elemento #tabelaSaldoADD não encontrado.");
+    return;
+  }
 
+  const hoje = new Date();
+  const ano = hoje.getFullYear();
+  const mes = hoje.getMonth() + 1;
+
+  const polo =
+    document.getElementById("filtroPoloSaldoADD")?.value?.trim() || "";
+
+  const chaveConsulta = `${ano}-${mes}-${polo}`;
+  const agora = Date.now();
+
+  const cacheValido =
+    saldosADDCarregados &&
+    ultimaChaveConsultaSaldo === chaveConsulta &&
+    agora - ultimaCargaSaldoEm < TEMPO_CACHE_SALDO_ADD;
+
+  if (!forcarAtualizacao && cacheValido) {
+    renderizarSaldosADD();
+    return;
+  }
+
+  // Evita duas consultas simultâneas iguais
+  if (saldosADDCarregando && !forcarAtualizacao) {
+    return;
+  }
+
+  // Cancela uma consulta anterior que ainda esteja aberta
+  if (controllerSaldoADD) {
+    controllerSaldoADD.abort();
+  }
+
+  controllerSaldoADD = new AbortController();
+  saldosADDCarregando = true;
+
+  if (!saldosADDCache.length) {
     tbody.innerHTML = `
-        <tr>
-            <td colspan="8" class="text-center py-3">
-                Carregando saldos...
-            </td>
-        </tr>
+      <tr>
+        <td colspan="8" class="text-center py-4">
+          <div class="spinner-border spinner-border-sm text-primary me-2"></div>
+          Carregando saldos...
+        </td>
+      </tr>
     `;
+  }
 
-    try{
+  try {
+    const params = new URLSearchParams();
 
-        const hoje = new Date();
+    params.set("ano", String(ano));
+    params.set("mes", String(mes));
 
-        const ano = hoje.getFullYear();
-
-        const mes = hoje.getMonth() + 1;
-
-        const polo =
-            document.getElementById("filtroPoloSaldoADD")?.value || "";
-
-        const params = new URLSearchParams();
-
-        params.set("ano", String(ano));
-        params.set("mes", String(mes));
-
-        if(polo){
-            params.set("polo", polo);
-        }
-
-        const resp =
-            await authFetch(
-                `${API}/saldo-add-admin?${params.toString()}`
-            );
-
-        const json =
-            await resp.json()
-            .catch(() => ({}));
-
-        if(!resp.ok || json.ok === false){
-
-            throw new Error(
-                json.error ||
-                json.erro ||
-                "Erro ao carregar saldos."
-            );
-
-        }
-
-        saldosADDCache =
-            json.items || [];
-
-        renderizarSaldosADD();
-
-    }catch(err){
-
-        console.error(err);
-
-        tbody.innerHTML = `
-            <tr>
-                <td colspan="8" class="text-center text-danger py-3">
-                    Erro ao carregar saldos: ${escaparHTML(err.message)}
-                </td>
-            </tr>
-        `;
-
-        setStatus(
-            "❌ Erro ao carregar saldos: " + err.message,
-            "danger"
-        );
-
+    if (polo) {
+      params.set("polo", polo);
     }
 
-}
+    const inicioConsulta = performance.now();
+
+    const resp = await authFetch(
+      `${API}/saldo-add-admin?${params.toString()}`,
+      {
+        signal: controllerSaldoADD.signal
+      }
+    );
+
+    const json = await resp.json().catch(() => ({}));
+
+    if (!resp.ok || json.ok === false) {
+      throw new Error(
+        json.error ||
+        json.erro ||
+        `Erro HTTP ${resp.status} ao carregar saldos.`
+      );
+    }
+
+    saldosADDCache = Array.isArray(json.items)
+      ? json.items
+      : [];
+
+    saldosADDCarregados = true;
+    ultimaChaveConsultaSaldo = chaveConsulta;
+    ultimaCargaSaldoEm = Date.now();
+
+    renderizarSaldosADD();
+
+    const tempo = Math.round(performance.now() - inicioConsulta);
+
+    console.log(
+      `Banco ADD carregado: ${saldosADDCache.length} registro(s) em ${tempo} ms`
+    );
+
+    setStatus(
+      `✅ Banco ADD carregado: ${saldosADDCache.length} colaborador(es).`,
+      "success"
+    );
+
+  } catch (err) {
+    if (err.name === "AbortError") {
+      console.log("Consulta anterior do Banco ADD cancelada.");
+      return;
+    }
+
+    console.error("Erro ao carregar Banco ADD:", err);
+
+    if (!saldosADDCache.length) {
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="8" class="text-center text-danger py-3">
+            Erro ao carregar saldos:
+            ${escaparHTML(err.message)}
+          </td>
+        </tr>
+      `;
+    }
+
+    setStatus(
+      "❌ Erro ao carregar saldos: " + err.message,
+      "danger"
+    );
+
+  } finally {
+    saldosADDCarregando = false;
+    controllerSaldoADD = null;
+  }
+};
 
 function renderizarSaldosADD(){
 
