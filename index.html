@@ -4183,15 +4183,29 @@ document.addEventListener(
   }
 );
 
-document.addEventListener("change", function(e){
+document.addEventListener("change", function (e) {
+  if (
+    e.target &&
+    e.target.id === "filtroPoloSaldoADD"
+  ) {
+    carregarSaldosADD(true);
+  }
+});
+    let timerPesquisaSaldoADD = null;
 
-    if(
-        e.target &&
-        e.target.id === "filtroPoloSaldoADD"
-    ){
-        renderizarSaldosADD();
-    }
+document.addEventListener("input", function (e) {
+  if (
+    !e.target ||
+    e.target.id !== "pesquisaSaldoADD"
+  ) {
+    return;
+  }
 
+  clearTimeout(timerPesquisaSaldoADD);
+
+  timerPesquisaSaldoADD = setTimeout(function () {
+    renderizarSaldosADD();
+  }, 250);
 });
 
   </script>
